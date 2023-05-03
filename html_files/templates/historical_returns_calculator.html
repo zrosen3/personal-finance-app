@@ -4,18 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Historical returns calculator</title>
+    <script src = "https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
     <link rel="stylesheet" type="text/css"
-    href="{{ url_for('static', filename='calculator.css') }}"/>
+    href="{{ url_for('static', filename='style.css') }}"/>
 </head>
 <body>
                 <h1> Historical returns calculator </h1>
                 <p> The goal of this calculator is to show what your approximate return from purchasing various investments would be. This 
                 calculator relies on a <a href = "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datafile/histretSP.html"> dataset  </a> compiled by the NYU stern school of business. </p>
-                
+                <p>
                 What is an index fund?
                 Index funds are combinations of stocks which track certain economical indexes. The S&P 500 index tracks the
                 prices of the stocks from the top 500 stocks in the United States over time. There are many index funds which track the price
-                of the S&P index fund.  </p>
+                of the S&P index fund.
+                </p>
                
                 <p> Below are definitions for the various investment indices you can select from below.</p>
                 
@@ -54,21 +56,18 @@
                     <label for="Sale year">Sale year:</label>
                     <input type = "number" name = "Sale year" id = "Sale year" min = "1928" max = "2022" value = "2020">
                     <br/>
-                    <label for "Capital gains tax rate"> Capital gains tax rate: </label>
+                    <label for ="Capital gains tax rate"> Capital gains tax rate: </label>
                     <input type = "number" name = "Capital gains tax rate" id = "Capital gains tax rate" min = "0" max = "100" value = "20">
-                    </br>
                     <input type="submit" value="Submit"/>
                     <input type="reset"  value="RESET" style="color: red;"/>
-                    </style>
-                    </br>
                 </form>
                 
                 {% if calculation_success6 == True %} 
-              <p> If you purchased {{investment_amount | currencyFormat}} of {{investment_choice}} at the start of {{purchase_year}} and sold it at the start of {{sale_year}}, 
-                    you would have sold it for {{nominal_sale_price | currencyFormat }} and paid {{tax | currencyFormat}} capital gains tax, assuming a {{tax_rate}}% capital gains tax rate.
+              <p> If you purchased {{investment_amount | currencyformat}} of {{investment_choice}} at the start of {{purchase_year}} and sold it at the start of {{sale_year}}, 
+                    you would have sold it for {{nominal_sale_price | currencyformat }} and paid {{tax | currencyformat}} capital gains tax, assuming a {{tax_rate}}% capital gains tax rate.
                     
-                    You sold your investment for {{nominal_gain | currencyFormat}} more than you purchased it. Accounting for inflation, you made
-                    {{real_return_tax | currencyFormat}} on your initial investment amount. </p>
+                    You sold your investment for {{nominal_gain | currencyformat}} more than you purchased it. Accounting for inflation, you made
+                    {{real_return_tax | currencyformat}} on your initial investment amount. </p>
                        {% for table in tables %}
                         {{titles[loop.index]}}
                         {{ table|safe }}

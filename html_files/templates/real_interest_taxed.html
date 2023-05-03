@@ -4,8 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title> Real taxed investment returns calculator </title>
+    <script src = "https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
     <link rel="stylesheet" type="text/css"
-    href="{{ url_for('static', filename='calculator.css') }}"/>
+    href="{{ url_for('static', filename='style.css') }}"/>
 </head>
 <body>
    
@@ -14,28 +15,83 @@
                     is a fairly good approximation for how the value of a real world investment increases. The returns are not as high as for when we don't account
                     for inflation or capital gains taxes. Still, the gains from holding investments over the long term can be substantial. </p>
                 <form method="post" action="{{ url_for('real_interest_taxed') }}" id="real_interest_taxed">
-                    <label for="Principal4">Investment:</label>
+                    <label for="Principal4">Investment:$</label>
                     <input type="number" name="Principal4" id="Principal" min = "0" value = "100">
                     <br/>
                     <label for="Interest4">Interest rate:</label>
-                    <input type="number" name="Interest4" id="Interest4" min = "0" value = "10">
+                    <input type="number" name="Interest4" id="Interest4" min = "0" value = "10.00" step = "any">%
                     <br/>
                     <label for="Inflation4">Inflation:</label>
-                    <input type="number" name="Inflation4" id="Inflation4" min = "0" value = "2">
+                    <input type="number" name="Inflation4" id="Inflation4" min = "0" value = "2.00" step = "any">%
                     <br/>
                     <label for="Tax4">Capital gains tax rate:</label>
-                    <input type="number" name="Tax4" id="Tax4" min = "0" max = "100" value = "20">
+                    <input type="number" name="Tax4" id="Tax4" min = "0" max = "100" value = "20.00" step = "any"> %
                     <br/>
                     <label for="Years4">Years:</label>
-                    <input type = "number" name = "Years4" id = "Years4" min = "0" value = "10">
+                    <input type = "number" name = "Years4" id = "Years4" min = "0" value = "10.00" step = "any">
                     <br/>
                     <input type="submit" value="Submit"/>
                     <input type="reset"  value="RESET" style="color: red;"/>
                 </form>
                 {% if calculation_success4 == True %}
                     <br/>
-                    <p> After {{Years4}} years, a {{Principal4 | currencyFormat}} investment gaining {{Interest4}}% a year will be worth
-                    {{result4 | currencyFormat}} accounting for {{Inflation4}}% inflation and {{Tax4}}% capital gains tax.</p>
+                    <p> After {{Years4}} years, a {{Principal4 | currencyformat}} investment gaining {{Interest4}}% a year will be worth
+                    {{result4 | currencyformat}}, accounting for {{Inflation4}}% inflation and {{Tax4}}% capital gains tax.</p>
+                     <canvas id = "lineChart" width = "900" height = "400"></canvas>
+             <script>
+             var ctx  = document.getElementById("lineChart").getContext("2d");
+             var lineChart = new Chart(ctx,
+                 {
+                     type: "line",
+                     data: {
+                         labels: {{labels | safe}},
+                         datasets: [
+                             {
+                                 label: "Tax adjusted real value",
+                                 data: {{tax_adjusted_real_values | safe }},
+                                 fill: false,
+                                 borderColor: "rgb(192,75,190)",
+                                 lineTension: 0.1
+                             },
+                              {
+                                 label: "Real value",
+                                 data: {{real_values | safe }},
+                                 fill: false,
+                                 borderColor: "rgb(75,81,192)",
+                                 lineTension: 0.1
+                             },
+                                {
+                                 label: "Simple value",
+                                 data: {{simple_values| safe }},
+                                 fill: false,
+                                 borderColor: "rgb(75, 192, 192)",
+                                 lineTension: 0.1
+                             }
+                         ]
+                     },
+                     options: {
+                         responsive: false,
+                         scales: {
+                             yAxes: [{
+                                 ticks: {
+                                     callback: function (value) {
+                                          value = value.toString();
+                                          value = value.split(/(?=(?:...)*$)/);
+                                          value = value.join(',');
+                                          return '$' + value;
+
+                                     }
+                                 }
+                             }],
+                             xAxes: [{
+                                 scaleLabel: {
+                                     display: true,
+                                     labelString: 'Year'
+                                 }
+                             }]
+                         }
+                     }});
+             </script>
                 {% endif %}
                 {% if calculation_success4== False %}
                     <br/>

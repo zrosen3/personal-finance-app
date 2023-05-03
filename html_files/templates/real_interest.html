@@ -4,8 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Real investment returns calculator</title>
+    <script src = "https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
     <link rel="stylesheet" type="text/css"
-    href="{{ url_for('static', filename='calculator.css') }}"/>
+    href="{{ url_for('static', filename='style.css') }}"/>
 </head>
         <h1> Real investment returns calculator </h1>
        <p> So far, we have been assuming no inflation. Inflation is the amount which goods become more expensive over time. 
@@ -16,25 +17,73 @@
             in value over time, and is calculated here as the nominal interest rate minus inflation. The federal bank of
             the US aims to keep inflation around 2% a year, though inflation has been much higher than 2% in recent times.</p> 
         <form method="post" action="{{ url_for('real_interest') }}" id="real_interest">
-            <label for="Principal3">Investment:</label>
-            <input type="number" name="Principal3" id="Principal3" min = "0" value = "100">
+            <label for="Principal3">Investment:$</label>
+            <input type="number" name="Principal3" id="Principal3" min = "0" value = "100.00" step = "any">
             <br/>
             <label for="Interest3">Interest rate:</label>
-            <input type="number" name="Interest3" id="Interest3" min = "0" value = "10">
+            <input type="number" name="Interest3" id="Interest3" min = "0" value = "10.00" step = "any"> %
             <br/>
             <label for="Inflation3">Inflation:</label>
-            <input type = "number" name = "Inflation3" id = "Inflation3" min = "0" value = "2">
+            <input type = "number" name = "Inflation3" id = "Inflation3" min = "0" value = "2.00" step = "any"> %
             <br/>
             <label for="Years3">Years:</label>
-            <input type = "number" name = "Years3" id = "Years3" min = "0" value = "10">
+            <input type = "number" name = "Years3" id = "Years3" min = "0" value = "10.00" step = "any">
             <br/>
             <input type="submit" value="Submit"/>
             <input type="reset"  value="RESET" style="color: red;"/>
         </form>
         {% if calculation_success3 == True %}
             <br/>
-            <p> After {{Years3}} years, a {{Principal3 | currencyFormat}} investment gaining {{Interest3}}% a year will be worth
-            {{result3 | currencyFormat}}, accounting for {{Inflation3}}% inflation.</p>
+            <p> After {{Years3}} years, a {{Principal3|currencyformat}} investment gaining {{Interest3}}% a year will be worth
+            {{result3|currencyformat}}, accounting for {{Inflation3}}% inflation.</p>
+             <canvas id = "lineChart" width = "900" height = "400"></canvas>
+             <script>
+             var ctx  = document.getElementById("lineChart").getContext("2d");
+             var lineChart = new Chart(ctx,
+                 {
+                     type: "line",
+                     data: {
+                         labels: {{labels | safe}},
+                         datasets: [
+                             {
+                                 label: "Real value",
+                                 data: {{values| safe }},
+                                 fill: false,
+                                 borderColor: "rgb(75,81,192)",
+                                 lineTension: 0.1
+                             },
+                               {
+                                 label: "Simple value",
+                                 data: {{values_no_inflation| safe }},
+                                 fill: false,
+                                 borderColor: "rgb(75, 192, 192)",
+                                 lineTension: 0.1
+                             }
+                         ]
+                     },
+                     options: {
+                         responsive: false,
+                         scales: {
+                             yAxes: [{
+                                 ticks: {
+                                     callback: function (value) {
+                                          value = value.toString();
+                                          value = value.split(/(?=(?:...)*$)/);
+                                          value = value.join(',');
+                                          return '$' + value;
+
+                                     }
+                                 }
+                             }],
+                             xAxes: [{
+                                 scaleLabel: {
+                                     display: true,
+                                     labelString: 'Year'
+                                 }
+                             }]
+                         }
+                     }});
+             </script>
         {% endif %}
         {% if calculation_success3 == False %}
             <br/>

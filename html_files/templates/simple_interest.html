@@ -6,7 +6,7 @@
     <title>Simple investment returns calculator</title>
     <script src = "https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script> 
     <link rel="stylesheet" type="text/css"
-    href="{{ url_for('static', filename='calculator.css') }}"/>
+    href="{{ url_for('static', filename='style.css') }}"/>
 </head>
 <body>
      <h1>Simple investment returns </h1>
@@ -20,22 +20,22 @@
     assuming a constant interest rate over time. You can play around with the calculator below to see how different interest rates, time horizons,
     and initial investment amounts affect your end returns. </p>
     <form method="post" action="{{ url_for('simple_interest') }}" id="simple_interest">
-        <label for="Principal1">Investment:</label>
-        <input type="number" name="Principal1" id="Principal1" min = "0" value = "100">
+        <label for="Principal1">Investment:$</label>
+        <input type="number" name="Principal1" id="Principal1" min = "0" value = "100.00" step = "any">
         <br/>
         <label for="Interest1">Interest rate:</label>
-        <input type="number" name="Interest1" id="Interest1" min = "0" value = "10">
+        <input type="number" name="Interest1" id="Interest1" min = "0" value = "10.00" step = "any">  %
         <br/>
         <label for="Years1">Years:</label>
-        <input type = "number" name = "Years1" id = "Years1" min = "0" value = "10">
+        <input type = "number" name = "Years1" id = "Years1" min = "0" value = "10.00" step = "any">
         <br/>
         <input type="submit" value="Submit"/>
         <input type="reset"  value="RESET" style="color: red;"/>
     </form>
     {% if calculation_success1 == True %}
         <br/>
-        <p> After {{Years1}} years, a {{Principal1 | currencyFormat}} investment gaining {{Interest1}}% a year will be worth
-        {{result1 | currencyFormat }}</p>
+        <p> After {{Years1}} years, a {{Principal1| currencyformat}} investment gaining {{Interest1}}% a year will be worth
+        {{result1 | currencyformat }}</p>
          <canvas id = "lineChart" width = "900" height = "400"></canvas>
              <script> 
              var ctx  = document.getElementById("lineChart").getContext("2d");
@@ -46,7 +46,7 @@
                          labels: {{labels | safe}},
                          datasets: [
                              {
-                                 label: "Investment value",
+                                 label: "Simple value",
                                  data: {{values | safe }},
                                  fill: false,
                                  borderColor: "rgb(75, 192, 192)",

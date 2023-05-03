@@ -4,8 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Simple taxed investment returns calculator </title>
+    <script src = "https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
     <link rel="stylesheet" type="text/css"
-    href="{{ url_for('static', filename='calculator.css') }}"/>
+    href="{{ url_for('static', filename='style.css') }}"/>
 </head>
 <body>
         <h1>Simple taxed investment returns </h1>
@@ -16,25 +17,73 @@
     which benefits long term investors and creates challenges for day traders.
     </p>
         <form method="post" action="{{ url_for('simple_interest_taxed') }}" id="simple_interest_taxed">
-            <label for="Principal2">Investment:</label>
-            <input type="number" name="Principal2" id="Principal2" min = "0" value = "100">
+            <label for="Principal2">Investment:$</label>
+            <input type="number" name="Principal2" id="Principal2" min = "0.00" value = "100.00" step = "any">
             <br/>
             <label for="Interest2">Interest rate:</label>
-            <input type="number" name="Interest2" id="Interest2" min = "0" value = "10">
+            <input type="number" name="Interest2" id="Interest2" min = "0" value = "10.00" step = "any"> %
             <br/>
             <label for="Tax2">Capital gains tax rate:</label>
-            <input type="number" name="Tax2" id="Tax2" min = "0" max = "100" value = "20">
+            <input type="number" name="Tax2" id="Tax2" min = "0" max = "100" value = "20.00" step = "any">%
             <br/>
             <label for="Years2">Years:</label>
-            <input type = "number" name = "Years2" id = "Years2" min = "0" value = "10">
+            <input type = "number" name = "Years2" id = "Years2" min = "0" value = "10.00" step = "any">
             <br/>
             <input type="submit" value="Submit"/>
             <input type="reset"  value="RESET" style="color: red;"/>
         </form>
         {% if calculation_success2 == True %} 
             <br/>
-            <p> After {{Years2}} years, a {{Principal2 | currencyFormat}} investment gaining {{Interest2}}% a year will be worth
-            {{result2 | currencyFormat}}, accounting for {{Tax2}}% capital gains tax.</p>
+            <p> After {{Years2}} years, a {{Principal2 | currencyformat}} investment gaining {{Interest2}}% a year will be worth
+            {{result2 | currencyformat}}, accounting for {{Tax2}}% capital gains tax.</p>
+            <canvas id = "lineChart" width = "900" height = "400"></canvas>
+             <script>
+             var ctx  = document.getElementById("lineChart").getContext("2d");
+             var lineChart = new Chart(ctx,
+                 {
+                     type: "line",
+                     data: {
+                         labels: {{labels | safe}},
+                         datasets: [
+                             {
+                                 label: "Taxed simple value",
+                                 data: {{values | safe }},
+                                 fill: false,
+                                 borderColor: "rgb(192,75,85)",
+                                 lineTension: 0.1
+                             },
+                              {
+                                 label: "Simple value",
+                                 data: {{values_no_tax| safe }},
+                                 fill: false,
+                                 borderColor: "rgb(75, 192, 192)",
+                                 lineTension: 0.1
+                             }
+                         ]
+                     },
+                     options: {
+                         responsive: false,
+                         scales: {
+                             yAxes: [{
+                                 ticks: {
+                                     callback: function (value) {
+                                          value = value.toString();
+                                          value = value.split(/(?=(?:...)*$)/);
+                                          value = value.join(',');
+                                          return '$' + value;
+
+                                     }
+                                 }
+                             }],
+                             xAxes: [{
+                                 scaleLabel: {
+                                     display: true,
+                                     labelString: 'Year'
+                                 }
+                             }]
+                         }
+                     }});
+             </script>
         {% endif %}
         {% if calculation_success2 == False %}
             <br/>

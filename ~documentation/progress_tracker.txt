@@ -21,32 +21,36 @@ Step 2: Improve app
 1. Move apps to different pages  ✅ 
 2. Change input types to numeric ✅ 
 3. Fix bug in historical indices function to allow sell date in 2022 ✅ 
-4. Improve exception handling
-5. Double check functions output
+4. Allow decimal inputs to inputs ✅ 
+5. Fix buttons so values don’t reset after submit
+6. Improve formatting on table for historical returns
+8. Improve exception handling
+9. Double check functions output
     1. Simple return
     2. Taxed return
     3. Real return
     4. Real taxed return
     5. Capital gains tax
     6. Indices over time
-6. Move project to git ✅ 
-7. Add links to other pages to each page ✅ 
+10. Move project to git  ✅ 
+11. Add links to other pages to each page ✅ 
+12. Figure out debug mode
  
 Step 3: Add graphs of investment over time:
-1. Simple return ✅   
-2. Taxed return
-3. Real return
-4. Real taxed return 
+1. Simple return  ✅ 
+2. Taxed return ✅ 
+3. Real return ✅ 
+4. Real taxed return ✅ 
 5. Indices over time 
 
-Step 4: Add default values for graphs and text output so something 
-automatically displayed
-Step 5: Finalize website design
-Step 6: Release publicly
+Step 4: Finalize website design
+Step 5: Release publicly using PythonAnywhere
 
 Step 6: Continue to improve!	
 Ideas
 -Try to pull own data and replicate yale database
 -Add cooler visualizations of investments over time
+-allow for multiple graphs/calculations on same page
+
 
 

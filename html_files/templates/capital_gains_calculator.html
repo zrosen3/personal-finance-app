@@ -5,14 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Capital gains calculator </title>
     <link rel="stylesheet" type="text/css"
-    href="{{ url_for('static', filename='calculator.css') }}"/>
+    href="{{ url_for('static', filename='style.css') }}"/>
 </head>
 <body>
                <h1> Capital gains tax calculator </h1>
                The capital gains tax is a federal tax where you pay a tax on the amount by which your investment increased. The capital gains 
                tax defends on your level of income. Historical capital gains rates have varied over time. Those in a higher income tax bracket pay more 
                in capital gains tax. See data on historical capital gains tax here: <a href = "https://www.wolterskluwer.com/en/expert-insights/whole-ball-of-tax-historical-capital-gains-rates"></a> .
-               Capital gains tax is higher for long-term versus short-term transactions, where long-term is defined by an selling an investment after holding it for
+               Capital gains tax is higher for long-term versus short-term transactions, where long-term is defined by selling an investment after holding it for
                at least 1 year. For purposes of this analysis, we are using the 2022 long term capital gains tax rate, which is 0%, 15%, or 20% depending on your income bracket. The short term capital gains tax rate
                is the same as the income tax rate, which is usually higher than the short term capital gains rate. See the <a href = "https://www.irs.gov/taxtopics/tc409#"> IRS website page </a> for more details. In this analysis,
                we will assume that all assets are held for longer than a year, to the long-term capital gains tax rate will apply.
@@ -36,7 +36,7 @@
                     <input type="reset"  value="RESET" style="color: red;"/>
                 </form>
                 {% if calculation_success5 == True %}
-                <p> Those filing {{status}} with an income of {{income | currencyFormat }} pay {{tax_rate}}% capital gains tax on any investments sold in
+                <p> Those filing {{status}} with an income of {{income | currencyformat }} paid {{tax_rate}}% capital gains tax on any investments sold in
                 2022.
                 </p>
                 {% endif %}
