@@ -9,24 +9,28 @@
 </head>
 <body>
                <h1> Capital gains tax calculator </h1>
+               <p>
                The capital gains tax is a federal tax where you pay a tax on the amount by which your investment increased. The capital gains 
                tax defends on your level of income. Historical capital gains rates have varied over time. Those in a higher income tax bracket pay more 
                in capital gains tax. See data on historical capital gains tax here: <a href = "https://www.wolterskluwer.com/en/expert-insights/whole-ball-of-tax-historical-capital-gains-rates"></a> .
+               </p>
+               <p>
                Capital gains tax is higher for long-term versus short-term transactions, where long-term is defined by selling an investment after holding it for
                at least 1 year. For purposes of this analysis, we are using the 2022 long term capital gains tax rate, which is 0%, 15%, or 20% depending on your income bracket. The short term capital gains tax rate
                is the same as the income tax rate, which is usually higher than the short term capital gains rate. See the <a href = "https://www.irs.gov/taxtopics/tc409#"> IRS website page </a> for more details. In this analysis,
                we will assume that all assets are held for longer than a year, to the long-term capital gains tax rate will apply.
-               
+               </p>
+               <p>
                To figure out what your capital gains tax rate is in 2022, you can use the calculator below, which is based on <a href = "https://www.nerdwallet.com/article/taxes/capital-gains-tax-rates"> tax rate
                data from Nerd Wallet </a>.
-               <p> </p>
+               <p>
                 <form method="post" action="{{ url_for('capital_gains_calculator') }}" id="capital_gains_calculator">
                     <label for="Status">Status:</label>
                     <select name="Status" id="Status">
                     <option value = "Single"> Single </option>
                     <option value = "Married, filing jointly"> Married, filing jointly </option>
                     <option value = "Married, filing separately"> Married, filing separately </option>
-                    <option value = "Head of family"> Head of family </option>
+                    <option value = "Head of household"> Head of household </option>
                     </select>
                     <br/>
                     <label for="Income">Income:</label>

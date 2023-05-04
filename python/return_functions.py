@@ -111,6 +111,15 @@ def historical_returns(df_returns, investment_choice, investment_amount, purchas
          "Real return including inflation and tax": real_return_tax}
     df_final = pd.DataFrame(d, index=[1])
 
+
+    #Create dataframe of investment value over time
+    values_over_time = pd.DataFrame([nominal_price_df['value_before_year'],
+                                     real_price_df['real_value_before_year'],
+                                     inflation_df['tax_adjusted_real_value']],
+                                    columns=["Nominal value", "Real value", "Real value taxed"])
+
+
+
     # print statement to debug
     # =============================================================================
     #     print("Initial investment:")
@@ -132,7 +141,7 @@ def historical_returns(df_returns, investment_choice, investment_amount, purchas
     # =============================================================================
 
     # return list of variables
-    return df_final
+    return [df_final, values_over_time]
 
 
 df_returns = pd.read_excel(r'../data/Output/Returns dataset.xlsx', sheet_name="r.data")

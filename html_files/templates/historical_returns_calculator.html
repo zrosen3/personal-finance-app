@@ -71,7 +71,62 @@
                        {% for table in tables %}
                         {{titles[loop.index]}}
                         {{ table|safe }}
-                    {% endfor %}  
+                    {% endfor %}
+                     <canvas id = "lineChart" width = "900" height = "400"></canvas>
+             <script>
+             var ctx  = document.getElementById("lineChart").getContext("2d");
+             var lineChart = new Chart(ctx,
+                 {
+                     type: "line",
+                     data: {
+                         labels: {{labels | safe}},
+                         datasets: [
+                             {
+                                 label: "Simple value",
+                                 data: {{simple_value| safe }},
+                                 fill: false,
+                                 borderColor: "rgb(192,75,190)",
+                                 lineTension: 0.1
+                             },
+                              {
+                                 label: "Real value",
+                                 data: {{real_value | safe }},
+                                 fill: false,
+                                 borderColor: "rgb(75,81,192)",
+                                 lineTension: 0.1
+                             },
+                                {
+                                 label: "Tax adjusted real value",
+                                 data: {{real_value_taxed | safe }},
+                                 fill: false,
+                                 borderColor: "rgb(75, 192, 192)",
+                                 lineTension: 0.1
+                             }
+                         ]
+                     },
+                     options: {
+                         responsive: false,
+                         scales: {
+                             yAxes: [{
+                                 ticks: {
+                                     callback: function (value) {
+                                          value = value.toString();
+                                          value = value.split(/(?=(?:...)*$)/);
+                                          value = value.join(',');
+                                          return '$' + value;
+
+                                     }
+                                 }
+                             }],
+                             xAxes: [{
+                                 scaleLabel: {
+                                     display: true,
+                                     labelString: 'Year'
+                                 }
+                             }]
+                         }
+                     }});
+             </script>
                 {% endif %} 
                     {% if calculation_success6 == False %}
                     <br/>

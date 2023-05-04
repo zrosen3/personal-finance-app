@@ -8,7 +8,7 @@ from return_functions import calculate_return, create_df, calculate_tax_rate, hi
 import pandas as pd
 
 # initialize app
-app = Flask(__name__, template_folder='../html_files/templates')
+app = Flask(__name__, template_folder='../html_files/templates', static_folder='../html_files/static')
 
 # load in returns dataframe
 returns_df = pd.read_excel(r'../data/Output/Returns dataset.xlsx', sheet_name="r.data")
@@ -362,7 +362,7 @@ def historical_returns_home():
     for col in df.columns:
         df[col] = df[col].apply(lambda x: "${:.2f}".format((x)))
     return (render_template('historical_returns_calculator.html',
-                            tables=[df.to_html(classes='data')],
+                            tables=[df.to_html(classes='data', index=False)],
                             purchase_year=purchase_year,
                             sale_year=sale_year,
                             titles=df.columns.values,
@@ -387,19 +387,25 @@ def historical_returns_calculator():
     sale_year = int(request.form["Sale year"])
     tax_rate = float(request.form["Capital gains tax rate"])
     try:
-        df = historical_returns(returns_df, investment_choice, amount, purchase_year, sale_year, tax_rate)
-        df = df.drop(df.columns[0], axis=1)
-        investment_amount = float(df["Initial investment amount"])
-        nominal_sale_price = float(df["Nominal sale price"])
-        real_sale_price = float(df["Real sale price"])
-        tax = float(df["Tax"])
-        nominal_sale_price_tax = float(df["Nominal sale price minus tax"])
-        real_end_value_tax = float(df["Real value of nominal sale price minus tax"])
-        real_return_tax = float(df["Real return including inflation and tax"])
+        historical_returns = historical_returns(returns_df, investment_choice, amount, purchase_year, sale_year, tax_rate)
+        endvalues_df = historical_returns[0]
+        investment_amount = float(endvalues_df["Initial investment amount"].iloc[0])
+        nominal_sale_price = float(endvalues_df["Nominal sale price"].iloc[0])
+        real_sale_price = float(endvalues_df["Real sale price"].iloc[0])
+        tax = float(endvalues_df["Tax"].iloc[0])
+        nominal_sale_price_tax = float(endvalues_df["Nominal sale price minus tax"].iloc[0])
+        real_end_value_tax = float(endvalues_df["Real value of nominal sale price minus tax"].iloc[0])
+        real_return_tax = float(endvalues_df["Real return including inflation and tax"].iloc[0])
+
+        overtime_df = historical_returns[1]
+        simple_value = values_df["Nominal value"]
+        real_value = values_df["Real value "]
+        real_value_taxed = values_df["Real value taxed"]
+
         for col in df.columns:
             df[col] = df[col].apply(lambda x: "${:.2f}".format((x)))
         return (render_template('historical_returns_calculator.html',
-                                tables=[df.to_string(index=False).to_html(classes='data', index_names=False)],
+                                tables=[df.to_html(classes='data', index=False, index_names=False)],
                                 purchase_year=purchase_year,
                                 sale_year=sale_year,
                                 titles=df.columns.values,
