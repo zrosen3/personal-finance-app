@@ -8,34 +8,38 @@
     <link rel="stylesheet" type="text/css"
     href="{{ url_for('static', filename='style.css') }}"/>
 </head>
-<body>
+<div class = "container">
+<div class = "sidebar">
+<a href="/"> Simple interest returns </a>
+<a href="/simple_interest_taxed/"> Taxed simple interest returns </a>
+<a href="/real_interest/"> Real  interest returns</a>
+<a href="/real_interest_taxed/"> Taxed real interest returns </a>
+<a href="/capital_gains/"> Capital gains calculator </a>
+<a href="/historical_returns/"> Historical returns calculator </a>
+<a href= "/about/" > About this website  </a>
+</div>
+<div class = "content">
         <h1>Simple taxed investment returns </h1>
-    <p> For the first set of calculations, we assumed no taxes. For this set of calculations, let's include capital gains tax.
-    Capital gains tax is the amount that you pay on a stock's increase in value. For example, if you buy a stock for
-    $10 but sell it for $100 ten years later, the government will take a percentage of the $90 increase in value from your stock.
-    Note that long and short run capital gains tax rates are typically different. Short term capital gains tax rates are typically higher,
-    which benefits long term investors and creates challenges for day traders.
-    </p>
         <form method="post" action="{{ url_for('simple_interest_taxed') }}" id="simple_interest_taxed">
             <label for="Principal2">Investment:$</label>
-            <input type="number" name="Principal2" id="Principal2" min = "0.00" value = "100.00" step = "any">
+            <input type="number" name="Principal2" id="Principal2" min = "0.00" value = "{{ Principal2 }}" step = "any">
             <br/>
-            <label for="Interest2">Interest rate:</label>
-            <input type="number" name="Interest2" id="Interest2" min = "0" value = "10.00" step = "any"> %
+            <label for="Interest2">Return:</label>
+            <input type="number" name="Interest2" id="Interest2"  value = "{{ Interest2 }}" step = "any"> %
             <br/>
             <label for="Tax2">Capital gains tax rate:</label>
-            <input type="number" name="Tax2" id="Tax2" min = "0" max = "100" value = "20.00" step = "any">%
+            <input type="number" name="Tax2" id="Tax2" min = "0" max = "100" value = "{{ Tax2 }}" step= "any">%
             <br/>
             <label for="Years2">Years:</label>
-            <input type = "number" name = "Years2" id = "Years2" min = "0" value = "10.00" step = "any">
+            <input type = "number" name = "Years2" id = "Years2" min = "0" value = "{{ Years2 }}" step = "any">
             <br/>
             <input type="submit" value="Submit"/>
-            <input type="reset"  value="RESET" style="color: red;"/>
+            <input type="reset"  value="Reset" style="color: red;"/>
         </form>
-        {% if calculation_success2 == True %} 
+        {% if calculation_success2 == True %}
             <br/>
-            <p> After {{Years2}} years, a {{Principal2 | currencyformat}} investment gaining {{Interest2}}% a year will be worth
-            {{result2 | currencyformat}}, accounting for {{Tax2}}% capital gains tax.</p>
+            <p> <b>After {{Years2}} years, a {{Principal2 | currencyformat}} investment gaining {{Interest2}}% a year will be worth
+                {{result2 | currencyformat}}, accounting for {{Tax2}}% capital gains tax.</b></p>
             <canvas id = "lineChart" width = "900" height = "400"></canvas>
              <script>
              var ctx  = document.getElementById("lineChart").getContext("2d");
@@ -46,58 +50,84 @@
                          labels: {{labels | safe}},
                          datasets: [
                              {
-                                 label: "Taxed simple value",
-                                 data: {{values | safe }},
-                                 fill: false,
-                                 borderColor: "rgb(192,75,85)",
-                                 lineTension: 0.1
-                             },
-                              {
                                  label: "Simple value",
                                  data: {{values_no_tax| safe }},
                                  fill: false,
                                  borderColor: "rgb(75, 192, 192)",
                                  lineTension: 0.1
+                             },
+                             {
+                                 label: "Taxed simple value",
+                                 data: {{values | safe }},
+                                 fill: false,
+                                 borderColor: "rgb(192,75,85)",
+                                 lineTension: 0.1
                              }
                          ]
                      },
-                     options: {
-                         responsive: false,
-                         scales: {
-                             yAxes: [{
-                                 ticks: {
-                                     callback: function (value) {
-                                          value = value.toString();
-                                          value = value.split(/(?=(?:...)*$)/);
-                                          value = value.join(',');
-                                          return '$' + value;
-
-                                     }
-                                 }
-                             }],
-                             xAxes: [{
-                                 scaleLabel: {
-                                     display: true,
-                                     labelString: 'Year'
-                                 }
-                             }]
-                         }
-                     }});
-             </script>
+                             options: {
+            responsive: false,
+            tooltips: {
+                callbacks: {
+                    label: function (t, d) {
+                        var xLabel = d.datasets[t.datasetIndex].label;
+                        var yLabel = t.yLabel.toFixed(2) >= 1000 ? '$' + t.yLabel.toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") : '$' + t.yLabel.toFixed(2);
+                        return xLabel + ': ' + yLabel;
+                    }
+                }
+            },
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        callback: function (value) {
+                            value = value.toString();
+                            value = value.split(/(?=(?:...)*$)/);
+                            value = value.join(',');
+                            return '$' + value;
+                        },
+                        fontColor: 'black',
+                        fontSize: 24,
+                    },
+                    gridLines: {
+                        color: 'black'
+                    }
+                }],
+                xAxes: [{
+                    ticks: {
+                        fontColor: 'black',
+                        fontSize: 24,
+                    },
+                    scaleLabel: {
+                        display: true,
+                        labelString: 'Year',
+                        fontColor: 'black',
+                        fontweight: 'bold',
+                        fontSize: 32
+                    },
+                    gridLines: {
+                        color: 'black'
+                    }
+                }]
+            },
+            legend: {
+                labels: {
+                  fontColor: 'black',
+                  fontSize: 32,
+                }
+  }
+        }
+    });
+</script>
         {% endif %}
         {% if calculation_success2 == False %}
             <br/>
             <p>{{error}}</p>
             <p>{{Principal2 | currencyFormat }} {{Interest2}} {{Years2}} = "{{result}}"</p>
         {% endif %}
-          
-</body>
-    <p> </p>
-    <a href= "../" > Home </a> <br>
-    <a href="/simple_interest/"> Simple interest returns </a> <br>
-    <a href="/simple_interest_taxed/"> Taxed simple interest returns</a> <br>
-    <a href="/real_interest/"> Real  interest returns</a> <br>
-    <a href="/real_interest_taxed/"> Taxed real interest returns </a> <br>
-    <a href="/capital_gains/"> Capital gains calculator </a> <br>
-    <a href="/historical_returns/"> Historical returns calculator </a> <br>
+    <p> For the first set of calculations, we assumed no taxes. Capital gains tax is the tax that you pay on a stock's increase in value. For example, if you buy a stock for
+    $10 but sell it for $100 ten years later, the government taxes your stock's $90 increase.
+    Long and short term capital gains tax rates are typically different. Short term capital gains tax rates are typically higher,
+    which benefits long term investors and creates challenges for day traders.
+    </p>
+</div> </div>
 </html>

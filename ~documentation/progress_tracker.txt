@@ -22,27 +22,34 @@ Step 2: Improve app
 2. Change input types to numeric ✅ 
 3. Fix bug in historical indices function to allow sell date in 2022 ✅ 
 4. Allow decimal inputs to inputs ✅ 
-5. Fix buttons so values don’t reset after submit
-6. Improve formatting on table for historical returns ✅ 
-7. Improve exception handling ✅ 
-8. Double check functions output
-    1. Simple return ✅ 
+5. Improve formatting on table for historical returns ✅ 
+6. Improve exception handling ✅ 
+7. Double check functions output
+    1. Simple return  ✅ 
     2. Taxed return ✅ 
-    3. Real return ✅ 
+    3. Real return  ✅ 
     4. Real taxed return  ✅ 
-    5. Capital gains tax ✅ 
-    6. Indices over time
-9. Move project to git  ✅ 
-10. Add links to other pages to each page ✅ 
-11. Figure out debug mode
-13. Fix PyCharm console/interpreter
- 
+    5. Capital gains tax  ✅ 
+    6. Indices over time ✅ 
+8. Move project to git  ✅ 
+9. Add links to other pages to each page ✅ 
+10. Fix PyCharm console/interpreter ✅ 
+11. Fix buttons so values don’t reset after submit ✅ 
+12. Improve site visuals ✅ 
+13. Switch order so calculations and graphs are before text ✅ 
+14. Format graph points as currencies ✅ 
+15. Figure out debug mode ✅ 
+16. Edit text on each page ✅ 
+17. Push changes to Github
+
+
+
 Step 3: Add graphs of investment over time:
-1. Simple return  ✅ 
+1. Simple return  ✅
 2. Taxed return ✅ 
 3. Real return ✅ 
 4. Real taxed return ✅ 
-5. Indices over time 
+5. Indices over time ✅ 
 
 Step 4: Release publicly using PythonAnywhere
 Step 5: Continue to improve!
@@ -51,7 +58,8 @@ Ideas
 -Add feature for timing of compounding
 -Add feature for additional contribution
 -Add cooler visualizations of investments over time
--allow for multiple graphs/calculations on same page
+-allow for multiple graphs/calculations on same page OR allow for live calculation without submit
+
 
 
 

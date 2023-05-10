@@ -7,37 +7,50 @@
     <script src = "https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script> 
     <link rel="stylesheet" type="text/css"
     href="{{ url_for('static', filename='style.css') }}"/>
+    <style>
+  /* Change the color of the axis lines to black */
+  .plotly-graph-svg .axis line,
+  .plotly-graph-svg .axis path {
+    stroke: black;
+  }
+
+  /* Increase the font size of the axis labels */
+  .plotly-graph-svg .axis .tick text {
+    font-size: 16px;
+  }
+</style>
 </head>
-<body>
-     <h1>Simple investment returns </h1>
-    <p>
-    The long run S&P 500 index rate has grown at roughly 8% over the last 40 years. The idea for this page is to show the
-    benefits of investing in simple terms. I am not a financial advisor! </p>
-    <p> Interest is the rate at which your stock accumulates over time. You can buy bonds, which often have a set interest rate (fixed-rate bonds),
-    or floating rate bonds, which have interest rates that vary. Stocks do not have set interest rates, but generally increase over time.
-    The value in stocks lies in their dividends: publicly owned stocks are required to pay out a certain amount of their profits in dividends to shareholders. </p>
-    <p> For this first set of calculations, you can see the gains from investing over time. This calculation is simplified,
-    assuming a constant interest rate over time. You can play around with the calculator below to see how different interest rates, time horizons,
-    and initial investment amounts affect your end returns. </p>
-    <form method="post" action="{{ url_for('simple_interest') }}" id="simple_interest">
+<div class = "container">
+<div class = "sidebar">
+<a href="/"> Simple interest returns </a>
+<a href="/simple_interest_taxed/"> Taxed simple interest returns </a>
+<a href="/real_interest/"> Real  interest returns</a>
+<a href="/real_interest_taxed/"> Taxed real interest returns </a>
+<a href="/capital_gains/"> Capital gains calculator </a>
+<a href="/historical_returns/"> Historical returns calculator </a>
+<a href= "/about/" > About this website  </a>
+    </div>
+<div class = "content">
+    <h1>Simple investment returns </h1>
+        <form method="post" action="{{ url_for('simple_interest') }}" id="simple_interest">
         <label for="Principal1">Investment:$</label>
-        <input type="number" name="Principal1" id="Principal1" min = "0" value = "100.00" step = "any">
+        <input type="number" name="Principal1" id="Principal1" min = "0" value = "{{ Principal1 }}" step = "any">
         <br/>
-        <label for="Interest1">Interest rate:</label>
-        <input type="number" name="Interest1" id="Interest1" min = "0" value = "10.00" step = "any">  %
+        <label for="Interest1"> Return:</label>
+        <input type="number" name="Interest1" id="Interest1"  value = "{{Interest1}}" step = "any">  %
         <br/>
         <label for="Years1">Years:</label>
-        <input type = "number" name = "Years1" id = "Years1" min = "0" value = "10.00" step = "any">
+        <input type = "number" name = "Years1" id = "Years1" min = "0" value = "{{Years1 }}" step = "any">
         <br/>
         <input type="submit" value="Submit"/>
-        <input type="reset"  value="RESET" style="color: red;"/>
+        <input type="reset"  value="Reset" style="color: red;"/>
     </form>
     {% if calculation_success1 == True %}
         <br/>
-        <p> After {{Years1}} years, a {{Principal1| currencyformat}} investment gaining {{Interest1}}% a year will be worth
-        {{result1 | currencyformat }}</p>
+        <p> <b>After {{Years1}} years, a {{Principal1| currencyformat}} investment gaining {{Interest1}}% a year will be worth
+            {{result1 | currencyformat }}</b></p>
          <canvas id = "lineChart" width = "900" height = "400"></canvas>
-             <script> 
+             <script>
              var ctx  = document.getElementById("lineChart").getContext("2d");
              var lineChart = new Chart(ctx,
                  {
@@ -47,51 +60,81 @@
                          datasets: [
                              {
                                  label: "Simple value",
-                                 data: {{values | safe }},
+                                 data: {{values| safe }},
                                  fill: false,
                                  borderColor: "rgb(75, 192, 192)",
                                  lineTension: 0.1
                              }
                          ]
                      },
-                     options: {
-                         responsive: false,
-                         scales: {
-                             yAxes: [{
-                                 ticks: {
-                                     callback: function (value) {
-                                          value = value.toString();
-                                          value = value.split(/(?=(?:...)*$)/);
-                                          value = value.join(',');
-                                          return '$' + value;
-
-                                     }
-                                 }
-                             }],
-                             xAxes: [{
-                                 scaleLabel: {
-                                     display: true,
-                                     labelString: 'Year'
-                                 }
-                             }]
-                         }
-                     }});
-             </script>  
+                             options: {
+            responsive: false,
+           tooltips: {
+            callbacks: {
+                label: function(t, d) { // Define a callback function to format the label
+                  var xLabel = d.datasets[t.datasetIndex].label; // Get the label of the current dataset
+                  var yLabel = t.yLabel.toFixed(2) >= 1000 ? '$' + t.yLabel.toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") : '$' + t.yLabel.toFixed(2); // Format the y-axis value as a currency string
+                  return xLabel + ': ' + yLabel; // Combine the dataset label and the formatted value to create the tooltip label
+                }
+                }
+            },
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        callback: function (value) {
+                            value = value.toString();
+                            value = value.split(/(?=(?:...)*$)/);
+                            value = value.join(',');
+                            return '$' + value;
+                        },
+                        fontColor: 'black',
+                        fontSize: 24,
+                    },
+                    gridLines: {
+                        color: 'black'
+                    }
+                }],
+                xAxes: [{
+                    ticks: {
+                        fontColor: 'black',
+                        fontSize: 24,
+                    },
+                    scaleLabel: {
+                        display: true,
+                        labelString: 'Year',
+                        fontColor: 'black',
+                        fontweight: 'bold',
+                        fontSize: 32
+                    },
+                    gridLines: {
+                        color: 'black'
+                    }
+                }]
+            },
+            legend: {
+                labels: {
+                  fontColor: 'black',
+                  fontSize: 32,
+                }
+  }
+        }
+    });
+</script>
     {% endif %}
     {% if calculation_success1 == False %}
         <br/>
         <p>{{error}}</p>
         <p>{{Principal1}} {{Interest1}} {{Years1}} = "{{result}}"</p>
     {% endif %}
-      
-                     
-</body>
-    <p> </p>
-    <a href= "../" > Home </a> <br>
-    <a href="/simple_interest/"> Simple interest returns </a> <br>
-    <a href="/simple_interest_taxed/"> Taxed simple interest returns</a> <br>
-    <a href="/real_interest/"> Real  interest returns</a> <br>
-    <a href="/real_interest_taxed/"> Taxed real interest returns </a> <br>
-    <a href="/capital_gains/"> Capital gains calculator </a> <br>
-    <a href="/historical_returns/"> Historical returns calculator </a> <br>
+    <p>
+    The value of the top 500 US stocks has grown at roughly 8% over the last 40 years. The goal of  page is to show the
+    benefits of investing. I am not a financial advisor! </p>
+    <p> Return is the rate at which an investment increases over time. You can buy fixed rate bonds, which have a set rate of return,
+        or floating rate bonds, which have returns that vary based on interest rates in the wider economy.  </p>
+    <p>    Stocks do not have set interest rates, but often increase in value over time. A stock's selling price increasing over time is called appreciation.
+    In addition to appreciation, stocks pay out dividends: publicly traded stocks are required to pay out a portion of their profits in dividends to shareholders. </p>
+    <p> For this first set of calculations, you can see the gains from investing over the long term. This calculation is simplified,
+    assuming a constant interest rate over time. You can play around with the calculator above to see how different interest rates, time horizons,
+    and initial investment amounts affect your end returns. </p>
+</div> </div>
 </html>

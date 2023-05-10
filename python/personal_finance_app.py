@@ -6,6 +6,8 @@ The application allows you to see returns from various potential investments.
 from flask import Flask, render_template, request
 from return_functions import calculate_return, create_df, calculate_tax_rate, historical_returns
 import pandas as pd
+import json
+import os
 
 # initialize app
 app = Flask(__name__, template_folder='../html_files/templates', static_folder='../html_files/static')
@@ -13,6 +15,21 @@ app = Flask(__name__, template_folder='../html_files/templates', static_folder='
 # load in returns dataframe
 returns_df = pd.read_excel(r'../data/Output/Returns dataset.xlsx', sheet_name="r.data")
 
+#Define functions to read and write json file
+app.config['DATA_FILE'] = 'data.json'
+
+#read data function
+def read_data():
+    if os.path.exists(app.config['DATA_FILE']):
+        with open(app.config['DATA_FILE'], 'r') as f:
+            return json.load(f)
+    else:
+        return []
+
+#write data function
+def write_data(data):
+    with open(app.config['DATA_FILE'], 'w') as f:
+        json.dump(data, f)
 
 # function to format dollar sign
 @app.template_filter()
@@ -22,18 +39,18 @@ def currencyformat(value):
 
 
 # Displays the index page accessible at '/'
-@app.route('/', methods=['GET'])
+@app.route('/about/', methods=['GET'])
 def index():
-    return render_template('index.html')
+    return render_template('about.html')
 
 
 # Simple interest calculation
-@app.route('/simple_interest/', methods=['GET'])
+@app.route('/', methods=['GET'])
 def simple_interest_home():
     principal = 100.0
     interest = 10.0
     years = 10.0
-    result = calculate_return(principal, interest, years)[0]
+    result = calculate_return(principal, interest, years)["Real taxed value"]
     df = create_df(principal, interest, years)
     labels = list(df["Year"])
     values = list(df["Value"])
@@ -57,10 +74,14 @@ def simple_interest():
     interest = float(request.form['Interest1'])
     years = float(request.form['Years1'])
     try:
-        result = calculate_return(principal, interest, years)[0]
+        result = calculate_return(principal, interest, years)["Real taxed value"]
         df = create_df(principal, interest, years)
         labels = list(df["Year"])
         values = list(df["Value"])
+        # save the input values to file
+        data = read_data()
+        data.append({'principal': principal, 'interest': interest, 'years': years})
+        write_data(data)
         return (
             render_template('simple_interest.html',
                             Principal1=principal,
@@ -91,11 +112,11 @@ def simple_interest_taxed_home():
     interest = 10
     tax = 10
     years = 10
-    result = calculate_return(principal, interest, years, inflation=0, cap_tax_rate=tax)[0]
+    result = calculate_return(principal, interest, years, inflation=0, cap_tax_rate=tax)["Real taxed value"]
     df = create_df(principal, interest, years, inflation=0, cap_tax_rate=tax)
     labels = list(df["Year"])
-    values = list(df["Tax adjusted return"])
-    values_no_tax = list(df["Value"])
+    values = list(df["Nominal taxed value"])
+    values_no_tax = list(df["Nominal value"])
     return (
         render_template('simple_interest_taxed.html',
                         Principal2=principal,
@@ -123,11 +144,11 @@ def simple_interest_taxed():
     years = float(years_text)
 
     try:
-        result = calculate_return(principal, interest, years, inflation=0, cap_tax_rate=tax)[0]
+        result = calculate_return(principal, interest, years, inflation=0, cap_tax_rate=tax)["Real taxed value"]
         df = create_df(principal, interest, years, inflation=0, cap_tax_rate=tax)
         labels = list(df["Year"])
-        values = list(df["Tax adjusted return"])
-        values_no_tax = list(df["Value"])
+        values = list(df["Nominal taxed value"])
+        values_no_tax = list(df["Nominal value"])
         # return value
         return (
             render_template('simple_interest_taxed.html',
@@ -162,12 +183,11 @@ def real_interest_home():
     interest = 10
     years = 10
     inflation = 2
-    result = calculate_return(principal, interest, years, inflation=inflation)[0]
+    result = calculate_return(principal, interest, years, inflation=inflation)["Real taxed value"]
     df = create_df(principal, interest, years, inflation=inflation)
-    df_no_inflation = create_df(principal, interest, years)
     labels = list(df["Year"])
-    values = list(df["Value"])
-    values_no_inflation = list(df_no_inflation["Value"])
+    values = list(df["Tax adjusted real value"])
+    values_no_inflation = list(df["Nominal taxed value"])
 
     return (
         render_template('real_interest.html',
@@ -196,12 +216,12 @@ def real_interest():
     years = float(years_text)
     inflation = float(inflation)
     try:
-        result = calculate_return(principal, interest, years, inflation=inflation)[0]
+        result = calculate_return(principal, interest, years, inflation=inflation)["Real taxed value"]
         df = create_df(principal, interest, years, inflation=inflation)
         df_no_inflation = create_df(principal, interest, years)
         labels = list(df["Year"])
         values = list(df["Value"])
-        values_no_inflation = list(df_no_inflation["Value"])
+        values_no_inflation = list(df["Nominal taxed value"])
         # return value
         return (
             render_template('real_interest.html',
@@ -235,13 +255,13 @@ def real_interest_taxed_home():
     years = 10
     inflation = 2
     tax = 20
-    result = calculate_return(principal, interest, years, inflation=inflation, cap_tax_rate=tax)[0]
+    result = calculate_return(principal, interest, years, inflation=inflation, cap_tax_rate=tax)["Real taxed value"]
     df = create_df(principal, interest, years, inflation, tax)
     df_simple = create_df(principal, interest, years)
     labels = list(df["Year"])
-    tax_adjusted_real_values = list(df["Tax adjusted return"])
-    real_values = list(df["Value"])
-    simple_values = list(df_simple["Value"])
+    tax_adjusted_real_values = list(df["Tax adjusted real value"])
+    real_values = list(df["Real value"])
+    simple_values = list(df_simple["Nominal value"])
 
     # return value
     return (
@@ -275,13 +295,13 @@ def real_interest_taxed():
     inflation = float(inflation_text)
     tax = float(tax_text)
     try:
-        result = calculate_return(principal, interest, years, inflation=inflation, cap_tax_rate=tax)[0]
+        result = calculate_return(principal, interest, years, inflation=inflation, cap_tax_rate=tax)["Real taxed value"]
         df = create_df(principal, interest, years, inflation, tax)
         df_simple = create_df(principal, interest, years)
         labels = list(df["Year"])
-        tax_adjusted_real_values = list(df["Tax adjusted return"])
-        real_values = list(df["Value"])
-        simple_values = list(df_simple["Value"])
+        tax_adjusted_real_values = list(df["Tax adjusted real value"])
+        real_values = list(df["Real value"])
+        simple_values = list(df_simple["Nominal value"])
         # return value
         return (
             render_template('real_interest_taxed.html',
@@ -326,9 +346,9 @@ def capital_gains_home():
 @app.route("/capital_gains/", methods=['POST'])
 def capital_gains_calculator():
     income = float(request.form["Income"])
-    status = request.form["Status"].lower()
+    status = request.form["Status"]
     try:
-        tax_rate = calculate_tax_rate(income, status)
+        tax_rate = calculate_tax_rate(income, status.lower())
         return (render_template('capital_gains_calculator.html',
                                 income=income,
                                 status=status,
@@ -343,29 +363,42 @@ def capital_gains_calculator():
                                 error="Cannot perform operations with provided input"))
 
 
-# Historical returns
 @app.route("/historical_returns/", methods=["GET"])
 def historical_returns_home():
     amount = 100
     investment_choice = "S&P 500"
     purchase_year = 2010
     sale_year = 2020
-    tax_rate = 20
-    df = historical_returns(returns_df, investment_choice, amount, purchase_year, sale_year, tax_rate)
-    investment_amount = float(df["Initial investment amount"])
-    nominal_sale_price = float(df["Nominal sale price"])
-    real_sale_price = float(df["Real sale price"])
-    tax = float(df["Tax"])
-    nominal_sale_price_tax = float(df["Nominal sale price minus tax"])
-    real_end_value_tax = float(df["Real value of nominal sale price minus tax"])
-    real_return_tax = float(df["Real return including inflation and tax"])
-    for col in df.columns:
-        df[col] = df[col].apply(lambda x: "${:.2f}".format((x)))
+    tax_rate = 20.0
+    hist_returns = historical_returns(returns_df, investment_choice, amount, purchase_year, sale_year, tax_rate)
+    last_row = len(hist_returns) - 1
+    investment_amount = float(hist_returns["value_before_year"].iloc[0])
+    nominal_sale_price = float(hist_returns["value_before_year"].iloc[last_row])
+    real_sale_price = float(hist_returns["real_value_before_year"].iloc[last_row])
+    tax = float(hist_returns["tax"].iloc[last_row])
+    nominal_sale_price_tax = float(hist_returns["value_before_year"].iloc[last_row]-hist_returns['tax'].iloc[last_row])
+    real_end_value_tax = float(hist_returns["tax_adjusted_real_value"].iloc[last_row])
+    real_return_tax = float(hist_returns["tax_adjusted_real_value"].iloc[last_row]-investment_amount)
+    simple_value = list(hist_returns["value_before_year"])
+    real_value = list(hist_returns["real_value_before_year"])
+    real_value_taxed = list(hist_returns["tax_adjusted_real_value"])
+
+    final_values_df = pd.DataFrame({"Initial investment amount": investment_amount,
+                                    "Nominal sale price": nominal_sale_price,
+                                    "Real sale price": real_sale_price,
+                                    "Tax": tax,
+                                    "Nominal sale price minus tax": nominal_sale_price_tax,
+                                    "Real value of taxed sale price": real_end_value_tax,
+                                    "Real taxed return": real_return_tax},
+                                   index=[0])
+    labels = list(hist_returns["year"])
+    for col in final_values_df.columns:
+        final_values_df[col] = final_values_df[col].apply(lambda x: "${:.2f}".format((x)))
     return (render_template('historical_returns_calculator.html',
-                            tables=[df.to_html(classes='data', index=False)],
+                            tables=[final_values_df.to_html(classes='data', index=False, index_names=False)],
                             purchase_year=purchase_year,
                             sale_year=sale_year,
-                            titles=df.columns.values,
+                            titles=hist_returns.columns.values,
                             investment_amount=investment_amount,
                             investment_choice=investment_choice,
                             nominal_sale_price=nominal_sale_price,
@@ -376,8 +409,11 @@ def historical_returns_home():
                             nominal_sale_price_tax=nominal_sale_price_tax,
                             real_end_value_tax=real_end_value_tax,
                             real_return_tax=real_return_tax,
+                            labels=labels,
+                            simple_value=simple_value,
+                            real_value=real_value,
+                            real_value_taxed=real_value_taxed,
                             calculation_success6=True))
-
 
 @app.route('/historical_returns/', methods=['POST'])
 def historical_returns_calculator():
@@ -387,28 +423,33 @@ def historical_returns_calculator():
     sale_year = int(request.form["Sale year"])
     tax_rate = float(request.form["Capital gains tax rate"])
     try:
-        historical_returns = historical_returns(returns_df, investment_choice, amount, purchase_year, sale_year, tax_rate)
-        endvalues_df = historical_returns[0]
-        investment_amount = float(endvalues_df["Initial investment amount"].iloc[0])
-        nominal_sale_price = float(endvalues_df["Nominal sale price"].iloc[0])
-        real_sale_price = float(endvalues_df["Real sale price"].iloc[0])
-        tax = float(endvalues_df["Tax"].iloc[0])
-        nominal_sale_price_tax = float(endvalues_df["Nominal sale price minus tax"].iloc[0])
-        real_end_value_tax = float(endvalues_df["Real value of nominal sale price minus tax"].iloc[0])
-        real_return_tax = float(endvalues_df["Real return including inflation and tax"].iloc[0])
+        hist_returns = historical_returns(returns_df, investment_choice, amount, purchase_year, sale_year, tax_rate)
+        last_row = len(hist_returns) - 1
+        investment_amount = float(hist_returns["value_before_year"].iloc[0])
+        nominal_sale_price = float(hist_returns["value_before_year"].iloc[last_row])
+        real_sale_price = float(hist_returns["real_value_before_year"].iloc[last_row])
+        tax = float(hist_returns["tax"].iloc[last_row])
+        nominal_sale_price_tax = float(hist_returns["value_before_year"].iloc[last_row]-hist_returns['tax'].iloc[last_row])
+        real_end_value_tax = float(hist_returns["tax_adjusted_real_value"].iloc[last_row])
+        real_return_tax = float(hist_returns["tax_adjusted_real_value"].iloc[last_row]-investment_amount)
+        simple_value = list(hist_returns["value_before_year"])
+        real_value = list(hist_returns["real_value_before_year"])
+        real_value_taxed = list(hist_returns["tax_adjusted_real_value"])
 
-        overtime_df = historical_returns[1]
-        simple_value = values_df["Nominal value"]
-        real_value = values_df["Real value "]
-        real_value_taxed = values_df["Real value taxed"]
-
-        for col in df.columns:
-            df[col] = df[col].apply(lambda x: "${:.2f}".format((x)))
+        final_values_df = pd.DataFrame({"Initial investment amount":investment_amount,
+                                       "Nominal sale price":nominal_sale_price,
+                                        "Real sale price": real_sale_price,
+                                        "Tax": tax,
+                                        "Nominal sale price minus tax": nominal_sale_price_tax,
+                                        "Real value of taxed sale price": real_end_value_tax,
+                                        "Real taxed return": real_return_tax},
+                                       index = [0])
+        labels = list(hist_returns['year'])
         return (render_template('historical_returns_calculator.html',
-                                tables=[df.to_html(classes='data', index=False, index_names=False)],
+                                tables=[final_values_df.to_html(classes='data', index=False, index_names=False)],
                                 purchase_year=purchase_year,
                                 sale_year=sale_year,
-                                titles=df.columns.values,
+                                titles=hist_returns.columns.values,
                                 investment_amount=investment_amount,
                                 investment_choice=investment_choice,
                                 nominal_sale_price=nominal_sale_price,
@@ -419,27 +460,27 @@ def historical_returns_calculator():
                                 nominal_sale_price_tax=nominal_sale_price_tax,
                                 real_end_value_tax=real_end_value_tax,
                                 real_return_tax=real_return_tax,
+                                labels=labels,
+                                simple_value=simple_value,
+                                real_value=real_value,
+                                real_value_taxed=real_value_taxed,
                                 calculation_success6=True))
 
     except ValueError:
         return (render_template('historical_returns_calculator.html',
-                                tables=[df.to_html(classes='data')],
-                                purchase_year=purchase_year,
-                                sale_year=sale_year,
-                                titles=df.columns.values,
-                                investment_amount=investment_amount,
-                                investment_choice=investment_choice,
-                                nomminal_sale_price=nominal_sale_price,
-                                real_sale_price=real_sale_price,
-                                tax=tax,
-                                tax_rate=tax_rate,
-                                nominal_sale_price_tax=nominal_sale_price_tax,
-                                nominal_gain=nominal_sale_price - investment_amount,
-                                real_end_value_tax=real_end_value_tax,
-                                real_return_tax=real_return_tax,
+                                amount = amount,
+                                investment_choice = investment_choice,
+                                purchase_year = purchase_year,
+                                sale_year = sale_year,
+                                tax_rate = tax_rate,
                                 error="Cannot perform operations with provided input",
                                 calculation_success6=False))
 
+
+# Real interest calculation, including tax
+if __name__ == '__main__':
+    app.debug = True
+    app.run()
 
 # Real interest calculation, including tax
 if __name__ == '__main__':

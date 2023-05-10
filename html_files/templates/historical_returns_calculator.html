@@ -8,72 +8,56 @@
     <link rel="stylesheet" type="text/css"
     href="{{ url_for('static', filename='style.css') }}"/>
 </head>
-<body>
+<div class = "container">
+<div class = "sidebar">
+<a href="/"> Simple interest returns </a>
+<a href="/simple_interest_taxed/"> Taxed simple interest returns </a>
+<a href="/real_interest/"> Real  interest returns</a>
+<a href="/real_interest_taxed/"> Taxed real interest returns </a>
+<a href="/capital_gains/"> Capital gains calculator </a>
+<a href="/historical_returns/"> Historical returns calculator </a>
+<a href= "/about/" > About this website  </a>
+
+    </div>
+<div class = "content">
                 <h1> Historical returns calculator </h1>
-                <p> The goal of this calculator is to show what your approximate return from purchasing various investments would be. This 
-                calculator relies on a <a href = "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datafile/histretSP.html"> dataset  </a> compiled by the NYU stern school of business. </p>
-                <p>
-                What is an index fund?
-                Index funds are combinations of stocks which track certain economical indexes. The S&P 500 index tracks the
-                prices of the stocks from the top 500 stocks in the United States over time. There are many index funds which track the price
-                of the S&P index fund.
-                </p>
-               
-                <p> Below are definitions for the various investment indices you can select from below.</p>
-                
-                <p>
-                S&P 500-Represents the stock prices of top 50 stocks in the United States
-                3-month treasury bill-The average yearly interest rate offered by the US treasury on 3 month treasury bills. 
-                U.S. treasury bond-Yields on constant maturity 10-year bonds.
-                BAA corporate bond-Yield on Moody's AAA and BAA bonds.
-                Real estate-To mesaure real estate, this websites use Robert Shiller's CASE index, which tracks the prices of houses over time.
-                </p>
-                
-                <p>
-                These indices are meant to represent the average return from different investment vehicles. Index funds are combinations of stocks whose
-                price tracks the value of the index. These index funds have become increasingly popular in recent years, as the combinations of stocks
-                serves to mitigate risk from individual companies. However, index funds typically charge a fee for running the fund. Passively managed index funds which
-                track the price of an index typically have lower fees than actively managed mutual funds where an investment management fee makes decisions about the purchases
-                and sales of individual stocks in the fund. The function below allows you to select different index funds and show how these investments fared over the last 40 years, including fees. 
-                </p> 
-              
                 <form method="post" action="{{ url_for('historical_returns_calculator') }}" id="historical_returns_calculator">
-                    <label for="Investment amount"> Investment amount:</label>
-                    <input type="number" name="Investment amount" id="Investment amount" min = "0" value = "100">
+                    <label for="Investment amount"> Investment amount:$</label>
+                    <input type="number" name="Investment amount" id="Investment amount" min = "0" value = {{ investment_amount }}>
                     <br/>
                     <label for="Investment choice"> Investment choice:</label>
                     <select name="Investment choice" id="Investment choice">
-                    <option value = "S&P 500"> S&P 500 </option>
-                    <option value = "3 month treasury bill"> 3 month treasury bill </option>
-                    <option value = "US treasury bond"> US treasury bond</option>
-                    <option value = "BAA corporate bond"> BAA corporate bond </option>
-                    <option value = "Real estate"> Real estate </option>
+                    <option value = "S&P 500" {% if investment_choice == "S&P 500" %} selected {% endif %}> S&P 500 </option>
+                    <option value = "3 month treasury bill" {%  if investment_choice == "3 month treasury bill" %} selected {% endif %}> 3 month treasury bill </option>
+                    <option value = "US treasury bond" {%  if investment_choice == "US treasury bond" %} selected {% endif %}> US treasury bond</option>
+                    <option value = "BAA corporate bond" {%  if investment_choice == "BAA corporate bond" %} selected {% endif %}> BAA corporate bond </option>
+                    <option value = "Real estate" {% if investment_choice == "Real estate" %}> selected {% endif %}> Real estate </option>
                     </select>
                     <br/>
                     <label for="Purchase year">Purchase year:</label>
-                    <input type="number" name="Purchase year" id="Purchase year" min = "1928" max = "2022" value = "2010">
+                    <input type="number" name="Purchase year" id="Purchase year" min = "1928" max = "2022" value = {{ purchase_year }}>
                     <br/>
                     <label for="Sale year">Sale year:</label>
-                    <input type = "number" name = "Sale year" id = "Sale year" min = "1928" max = "2022" value = "2020">
+                    <input type = "number" name = "Sale year" id = "Sale year" min = "1928" max = "2022" value = {{ sale_year }}>
                     <br/>
                     <label for ="Capital gains tax rate"> Capital gains tax rate: </label>
-                    <input type = "number" name = "Capital gains tax rate" id = "Capital gains tax rate" min = "0" max = "100" value = "20">
+                    <input type = "number" name = "Capital gains tax rate" id = "Capital gains tax rate" min = "0" max = "100" value = {{ tax_rate }}>%
+                    <br/>
                     <input type="submit" value="Submit"/>
-                    <input type="reset"  value="RESET" style="color: red;"/>
+                    <input type="reset"  value="Reset" style="color: red;"/>
                 </form>
                 
                 {% if calculation_success6 == True %} 
-              <p> If you purchased {{investment_amount | currencyformat}} of {{investment_choice}} at the start of {{purchase_year}} and sold it at the start of {{sale_year}}, 
-                    you would have sold it for {{nominal_sale_price | currencyformat }} and paid {{tax | currencyformat}} capital gains tax, assuming a {{tax_rate}}% capital gains tax rate.
-                    
-                    You sold your investment for {{nominal_gain | currencyformat}} more than you purchased it. Accounting for inflation, you made
-                    {{real_return_tax | currencyformat}} on your initial investment amount. </p>
                        {% for table in tables %}
-                        {{titles[loop.index]}}
                         {{ table|safe }}
                     {% endfor %}
+                                  <p> <b> If you purchased {{investment_amount | currencyformat}} of {{investment_choice}} at the start of {{purchase_year}} and sold it at the start of {{sale_year}},
+                    the real taxed value of your sale price would be {{real_end_value_tax| currencyformat}}. </b> </p>
                      <canvas id = "lineChart" width = "900" height = "400"></canvas>
              <script>
+            Chart.Legend.prototype.afterFit = function() {
+                this.height = this.height + 10;
+                };
              var ctx  = document.getElementById("lineChart").getContext("2d");
              var lineChart = new Chart(ctx,
                  {
@@ -104,43 +88,85 @@
                              }
                          ]
                      },
-                     options: {
-                         responsive: false,
-                         scales: {
-                             yAxes: [{
-                                 ticks: {
-                                     callback: function (value) {
-                                          value = value.toString();
-                                          value = value.split(/(?=(?:...)*$)/);
-                                          value = value.join(',');
-                                          return '$' + value;
-
-                                     }
-                                 }
-                             }],
-                             xAxes: [{
-                                 scaleLabel: {
-                                     display: true,
-                                     labelString: 'Year'
-                                 }
-                             }]
-                         }
-                     }});
-             </script>
+                             options: {
+            responsive: false,
+            tooltips: {
+                callbacks: {
+                    label: function (t, d) {
+                        var xLabel = d.datasets[t.datasetIndex].label;
+                        var yLabel = t.yLabel.toFixed(2) >= 1000 ? '$' + t.yLabel.toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") : '$' + t.yLabel.toFixed(2);
+                        return xLabel + ': ' + yLabel;
+                    }
+                }
+            },
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        callback: function (value) {
+                            value = value.toString();
+                            value = value.split(/(?=(?:...)*$)/);
+                            value = value.join(',');
+                            return '$' + value;
+                        },
+                        fontColor: 'black',
+                        fontSize: 24,
+                    },
+                    gridLines: {
+                        color: 'black'
+                    }
+                }],
+                xAxes: [{
+                    ticks: {
+                        fontColor: 'black',
+                        fontSize: 24,
+                    },
+                    scaleLabel: {
+                        display: true,
+                        labelString: 'Year',
+                        fontColor: 'black',
+                        fontweight: 'bold',
+                        fontSize: 32
+                    },
+                    gridLines: {
+                        color: 'black'
+                    }
+                }]
+            },
+            legend: {
+                labels: {
+                  fontColor: 'black',
+                  fontSize: 32,
+                }
+  }
+        }
+    });
+</script>
                 {% endif %} 
                     {% if calculation_success6 == False %}
                     <br/>
                     <p>{{error}}</p> 
                     <p> {{investment_amount}} {{investment_choice}} {{purchase_year}} {{sale_year}} {{tax}} = "{{real_return_tax}}"</p>
-                {% endif %}       
-         
-</body>
-    <p> </p>
-    <a href= "../" > Home </a> <br>
-    <a href="/simple_interest/"> Simple interest returns </a> <br>
-    <a href="/simple_interest_taxed/"> Taxed simple interest returns</a> <br>
-    <a href="/real_interest/"> Real  interest returns</a> <br>
-    <a href="/real_interest_taxed/"> Taxed real interest returns </a> <br>
-    <a href="/capital_gains/"> Capital gains calculator </a> <br>
-    <a href="/historical_returns/"> Historical returns calculator </a> <br>
+                {% endif %}
+                <p> The goal of this calculator is to show approximate historical returns from various investment choices. This
+                calculator relies on a <a href = "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datafile/histretSP.html"> financial returns dataset  </a> compiled by the NYU stern school of business. </p>
+                <b> Investment choice definitions </b>
+                <p>
+                    <i> S&P 500 </i>-Represents the stock prices of top 500 US stocks </br>
+                    <i> 3-month treasury bill </i>-yearly return offered by the US treasury on 3 month treasury bills. </br>
+                    <i> U.S. treasury bond </i>-yields on constant maturity 10-year bonds. </br>
+                    <i> BAA corporate bond </i>-yield on Moody's AAA and BAA corporate bonds. </br>
+                    <i> Real estate </i>-to measure real estate, the source data uses Robert Shiller's CASE index, which tracks the prices of houses over time. </br>
+                </p>
+
+                <p>
+                    While you can buy bonds directly, the S&P 500 and real estate indices are meant to represent the average returns
+                    from stocks and real estate. For those looking for investments which track these averages, index funds are a popular choice.
+                </p>
+                <p>
+                    Index funds are portfolios of stocks whose
+                price tracks the value of an index. Real estate and S&P 500 index funds have become increasingly popular in recent years, as the aggregation
+                mitigates risk from individual investments. Index funds typically charge an annual maintenance fee, and it is important to research fees before purchasing any specific fund. </p>
+     </p>
+
+</div> </div>
 </html>

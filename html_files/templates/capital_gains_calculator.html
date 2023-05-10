@@ -7,54 +7,47 @@
     <link rel="stylesheet" type="text/css"
     href="{{ url_for('static', filename='style.css') }}"/>
 </head>
-<body>
-               <h1> Capital gains tax calculator </h1>
-               <p>
-               The capital gains tax is a federal tax where you pay a tax on the amount by which your investment increased. The capital gains 
-               tax defends on your level of income. Historical capital gains rates have varied over time. Those in a higher income tax bracket pay more 
-               in capital gains tax. See data on historical capital gains tax here: <a href = "https://www.wolterskluwer.com/en/expert-insights/whole-ball-of-tax-historical-capital-gains-rates"></a> .
-               </p>
-               <p>
-               Capital gains tax is higher for long-term versus short-term transactions, where long-term is defined by selling an investment after holding it for
-               at least 1 year. For purposes of this analysis, we are using the 2022 long term capital gains tax rate, which is 0%, 15%, or 20% depending on your income bracket. The short term capital gains tax rate
-               is the same as the income tax rate, which is usually higher than the short term capital gains rate. See the <a href = "https://www.irs.gov/taxtopics/tc409#"> IRS website page </a> for more details. In this analysis,
-               we will assume that all assets are held for longer than a year, to the long-term capital gains tax rate will apply.
-               </p>
-               <p>
-               To figure out what your capital gains tax rate is in 2022, you can use the calculator below, which is based on <a href = "https://www.nerdwallet.com/article/taxes/capital-gains-tax-rates"> tax rate
-               data from Nerd Wallet </a>.
-               <p>
+<div class = "container">
+<div class = "sidebar">
+<a href="/"> Simple interest returns </a>
+<a href="/simple_interest_taxed/"> Taxed simple interest returns </a>
+<a href="/real_interest/"> Real  interest returns</a>
+<a href="/real_interest_taxed/"> Taxed real interest returns </a>
+<a href="/capital_gains/"> Capital gains calculator </a>
+<a href="/historical_returns/"> Historical returns calculator </a>
+<a href= "/about/" > About this website  </a>
+
+    </div>
+                <h1> Capital gains tax calculator </h1>
                 <form method="post" action="{{ url_for('capital_gains_calculator') }}" id="capital_gains_calculator">
                     <label for="Status">Status:</label>
                     <select name="Status" id="Status">
-                    <option value = "Single"> Single </option>
-                    <option value = "Married, filing jointly"> Married, filing jointly </option>
-                    <option value = "Married, filing separately"> Married, filing separately </option>
-                    <option value = "Head of household"> Head of household </option>
+                    <option value="Single" {% if status == 'Single' %} selected {% endif %}> Single </option>
+                    <option value="Married, filing jointly" {% if status == 'Married, filing jointly' %} selected {% endif %}> Married, filing jointly </option>
+                    <option value="Married, filing separately" {% if status == 'Married, filing separately' %} selected {% endif %}> Married, filing separately </option>
+                    <option value="Head of household" {% if status == 'Head of household' %} selected {% endif %}> Head of household </option>
                     </select>
                     <br/>
                     <label for="Income">Income:</label>
-                    <input type="number" name="Income" id="Income" min = "0" value = "50000">
+                    <input type="number" name="Income" id="Income" min = "0" value = "{{ income }}" step = "any">
                     <br/>
                     <input type="submit" value="Submit"/>
-                    <input type="reset"  value="RESET" style="color: red;"/>
+                    <input type="reset"  value="Reset" style="color: red;"/>
                 </form>
                 {% if calculation_success5 == True %}
-                <p> Those filing {{status}} with an income of {{income | currencyformat }} paid {{tax_rate}}% capital gains tax on any investments sold in
+                <p> <b>Those filing {{status.lower()}} with an income of {{income | currencyformat }} paid {{tax_rate}}% capital gains tax on any investments sold in
                 2022.
-                </p>
+                </b> </p>
                 {% endif %}
                 {% if calculation_success5 == False %}
                 <br/>
                 <p> {{error}}</p>
-                {% endif %}                       
-</body>
-    <p> </p>
-    <a href= "../" > Home </a> <br>
-    <a href="/simple_interest/"> Simple interest returns </a> <br>
-    <a href="/simple_interest_taxed/"> Taxed simple interest returns</a> <br>
-    <a href="/real_interest/"> Real  interest returns</a> <br>
-    <a href="/real_interest_taxed/"> Taxed real interest returns </a> <br>
-    <a href="/capital_gains/"> Capital gains calculator </a> <br>
-    <a href="/historical_returns/"> Historical returns calculator </a> <br>
+                {% endif %}
+               <p>
+               The capital gains tax is a tax on the amount by which your investment increased. This tax is incurred when you sell an investment.
+                   Capital gains tax is higher for long-term versus short-term investments, where long-term is defined by an investment held for more than one year.  </p>
+                 <p>  The short term capital gains tax rate
+               is the same as the federal income tax rate, which is usually higher than the long term capital gains rate. For the calculator above, we are calculating the  long term capital gains tax rate for investments sold in 2022.
+               This calculator was based on Nerd Wallet's helpful table which can be found <a href = "https://www.nerdwallet.com/article/taxes/capital-gains-tax-rates"> here</a>. </p>
+</div> </div>
 </html>

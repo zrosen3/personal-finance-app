@@ -8,37 +8,47 @@
     <link rel="stylesheet" type="text/css"
     href="{{ url_for('static', filename='style.css') }}"/>
 </head>
-<body>
-   
+<div class = "container">
+<div class = "sidebar">
+<a href="/"> Simple interest returns </a>
+<a href="/simple_interest_taxed/"> Taxed simple interest returns </a>
+<a href="/real_interest/"> Real  interest returns</a>
+<a href="/real_interest_taxed/"> Taxed real interest returns </a>
+<a href="/capital_gains/"> Capital gains calculator </a>
+<a href="/historical_returns/"> Historical returns calculator </a>
+<a href= "/about/" > About this website  </a>
+
+    </div>
+<div class = "content">
                 <h1>Real taxed investment returns </h1>
-                    <p> Now, we combine inflation and capital gains tax to see the true value of an investment over time. The below calculation
-                    is a fairly good approximation for how the value of a real world investment increases. The returns are not as high as for when we don't account
-                    for inflation or capital gains taxes. Still, the gains from holding investments over the long term can be substantial. </p>
                 <form method="post" action="{{ url_for('real_interest_taxed') }}" id="real_interest_taxed">
                     <label for="Principal4">Investment:$</label>
-                    <input type="number" name="Principal4" id="Principal" min = "0" value = "100">
+                    <input type="number" name="Principal4" id="Principal" min = "0" value = {{ Principal4 }}>
                     <br/>
                     <label for="Interest4">Interest rate:</label>
-                    <input type="number" name="Interest4" id="Interest4" min = "0" value = "10.00" step = "any">%
+                    <input type="number" name="Interest4" id="Interest4" value = {{ Interest4 }} step = "any">%
                     <br/>
                     <label for="Inflation4">Inflation:</label>
-                    <input type="number" name="Inflation4" id="Inflation4" min = "0" value = "2.00" step = "any">%
+                    <input type="number" name="Inflation4" id="Inflation4"  value = {{ Inflation4 }} step = "any">%
                     <br/>
                     <label for="Tax4">Capital gains tax rate:</label>
-                    <input type="number" name="Tax4" id="Tax4" min = "0" max = "100" value = "20.00" step = "any"> %
+                    <input type="number" name="Tax4" id="Tax4" min = "0" max = "100" value = {{ Tax4 }} step = "any"> %
                     <br/>
                     <label for="Years4">Years:</label>
-                    <input type = "number" name = "Years4" id = "Years4" min = "0" value = "10.00" step = "any">
+                    <input type = "number" name = "Years4" id = "Years4" min = "0" value = {{ Years4 }} step = "any">
                     <br/>
                     <input type="submit" value="Submit"/>
-                    <input type="reset"  value="RESET" style="color: red;"/>
+                    <input type="reset"  value="Reset" style="color: red;"/>
                 </form>
                 {% if calculation_success4 == True %}
                     <br/>
-                    <p> After {{Years4}} years, a {{Principal4 | currencyformat}} investment gaining {{Interest4}}% a year will be worth
-                    {{result4 | currencyformat}}, accounting for {{Inflation4}}% inflation and {{Tax4}}% capital gains tax.</p>
+                    <p> <b> After {{Years4}} years, a {{Principal4 | currencyformat}} investment gaining {{Interest4}}% a year will be worth
+                        {{result4 | currencyformat}}, accounting for {{Inflation4}}% inflation and {{Tax4}}% capital gains tax. </b></p>
                      <canvas id = "lineChart" width = "900" height = "400"></canvas>
              <script>
+             Chart.Legend.prototype.afterFit = function() {
+                 this.height = this.height + 10;
+            };
              var ctx  = document.getElementById("lineChart").getContext("2d");
              var lineChart = new Chart(ctx,
                  {
@@ -47,66 +57,89 @@
                          labels: {{labels | safe}},
                          datasets: [
                              {
-                                 label: "Tax adjusted real value",
-                                 data: {{tax_adjusted_real_values | safe }},
+                                 label: "Simple value",
+                                 data: {{simple_values| safe }},
                                  fill: false,
-                                 borderColor: "rgb(192,75,190)",
+                                 borderColor: "rgb(75, 192, 192)",
                                  lineTension: 0.1
                              },
-                              {
+                             {
                                  label: "Real value",
                                  data: {{real_values | safe }},
                                  fill: false,
                                  borderColor: "rgb(75,81,192)",
                                  lineTension: 0.1
                              },
-                                {
-                                 label: "Simple value",
-                                 data: {{simple_values| safe }},
+                             {
+                                 label: "Real value of taxed price",
+                                 data: {{tax_adjusted_real_values | safe }},
                                  fill: false,
-                                 borderColor: "rgb(75, 192, 192)",
+                                 borderColor: "rgb(192,75,190)",
                                  lineTension: 0.1
                              }
                          ]
                      },
-                     options: {
-                         responsive: false,
-                         scales: {
-                             yAxes: [{
-                                 ticks: {
-                                     callback: function (value) {
-                                          value = value.toString();
-                                          value = value.split(/(?=(?:...)*$)/);
-                                          value = value.join(',');
-                                          return '$' + value;
-
+                             options: {
+                                 responsive: false,
+                                 tooltips: {
+                                     callbacks: {
+                                         label: function (t, d) {
+                                             var xLabel = d.datasets[t.datasetIndex].label;
+                                             var yLabel = t.yLabel.toFixed(2) >= 1000 ? '$' + t.yLabel.toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") : '$' + t.yLabel.toFixed(2);
+                                             return xLabel + ': ' + yLabel;
+                                         }
                                      }
+                                 },
+                                 scales: {
+                                     yAxes: [{
+                                         ticks: {
+                                             callback: function (value) {
+                                                 value = value.toString();
+                                                 value = value.split(/(?=(?:...)*$)/);
+                                                 value = value.join(',');
+                                                 return '$' + value;
+                                             },
+                                             fontColor: 'black',
+                                             fontSize: 24,
+                                         },
+                                         gridLines: {
+                                             color: 'black'
+                                         }
+                                     }],
+                                     xAxes: [{
+                                         ticks: {
+                                             fontColor: 'black',
+                                             fontSize: 24,
+                                         },
+                                         scaleLabel: {
+                                             display: true,
+                                             labelString: 'Year',
+                                             fontColor: 'black',
+                                             fontweight: 'bold',
+                                             fontSize: 32
+                                         },
+                                         gridLines: {
+                                             color: 'black'
+                                         }
+                                     }]
+                                 },
+                                 legend: {
+                                     labels: {
+                                         fontColor: 'black',
+                                         fontSize: 32,
+                                     },
                                  }
-                             }],
-                             xAxes: [{
-                                 scaleLabel: {
-                                     display: true,
-                                     labelString: 'Year'
-                                 }
-                             }]
-                         }
-                     }});
-             </script>
+                             }
+    });
+</script>
                 {% endif %}
                 {% if calculation_success4== False %}
                     <br/>
                     <p>{{error}}</p>
                     <p>{{Principal5}} {{Interest5}} {{Years5}} = "{{result5}}"</p>
                 {% endif %}
-              
-                            
-</body>
-    <p> </p>
-    <a href= "../" > Home </a> <br>
-    <a href="/simple_interest/"> Simple interest returns </a> <br>
-    <a href="/simple_interest_taxed/"> Taxed simple interest returns</a> <br>
-    <a href="/real_interest/"> Real  interest returns</a> <br>
-    <a href="/real_interest_taxed/"> Taxed real interest returns </a> <br>
-    <a href="/capital_gains/"> Capital gains calculator </a> <br>
-    <a href="/historical_returns/"> Historical returns calculator </a> <br>
+                    <p> To see the true value of an investment over time, we have to account for both inflation and taxes. The above calculation
+                    is a fairly good approximation for how the value of a real world investment increases.
+                    Despite the effects of inflation and taxes, the gains from holding investments over the long term can be substantial. </p>
+</div> </div>
 </html>

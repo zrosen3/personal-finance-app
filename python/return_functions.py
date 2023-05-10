@@ -1,24 +1,42 @@
 import pandas as pd
 
 
-
 # calculate end return of investment
 def calculate_return(principal, interest, years, inflation=0, cap_tax_rate=0):
-    raw_return = principal * ((1 + interest / 100) / (1 + inflation / 100)) ** years
-    taxes = (raw_return - principal) * cap_tax_rate / 100
-    tax_adjusted_return = raw_return - taxes
-    value_added = tax_adjusted_return - principal
-    return [round(tax_adjusted_return, 2), round(taxes, 2), round(value_added, 2)]
+    # calculate nominal investment value
+    nominal_value = (principal * ((1 + interest / 100)) ** years)
+    nominal_return = nominal_value - principal
+
+    # Adjust for taxes
+    taxes = max(nominal_return, 0) * cap_tax_rate / 100
+    nominal_taxed_value = nominal_value - taxes
+
+    # Adjust for inflation
+    real_taxed_value = nominal_taxed_value / ((1 + inflation / 100) ** years)
+    real_taxed_return = real_taxed_value - principal
+    real_value = nominal_value / (((1 + inflation / 100)) ** years)
+
+    # Return values in labeled single row dataframe
+    df = {"Nominal value": round(nominal_value, 2),
+          "Nominal return": round(nominal_return, 2),
+          "Taxes": round(taxes, 2),
+          "Nominal taxed value": round(nominal_taxed_value, 2),
+          "Real value": round(real_value, 2),
+          "Real taxed value": round(real_taxed_value, 2),
+          "Real taxed return": round(real_taxed_return, 2)}
+    return df
 
 
 # create dataframe of investment over time
 def create_df(principal, interest, years, inflation=0, cap_tax_rate=0):
     d = {'Year': [int(year) for year in range(0, int(years) + 1)]}
     df = pd.DataFrame(data=d)
-    df["Value"] = 1.0
-    df["Value"] = principal * ((1 + interest / 100) / (1 + inflation / 100)) ** df['Year']
-    df["Capital gains tax"] = (df["Value"] - principal) * cap_tax_rate / 100
-    df["Tax adjusted return"] = df["Value"] - df["Capital gains tax"]
+    df["Nominal value"] = principal * ((1 + (interest / 100)) ** df["Year"])
+    df["Capital gains tax"] = (df["Nominal value"] - principal) * cap_tax_rate / 100
+    df["Nominal taxed value"] = df["Nominal value"] - df["Capital gains tax"]
+    df["Real value"] = df["Nominal value"] / ((1 + (inflation / 100)) ** df["Year"])
+    df["Tax adjusted real value"] = df["Nominal taxed value"] / ((1 + (inflation / 100)) ** df["Year"])
+    df["Value"] = df["Tax adjusted real value"]
     return df
 
 
@@ -45,7 +63,6 @@ def calculate_tax_rate(income, status):
             tax_rate = 15
         elif income >= 488501:
             tax_rate = 20
-
     return tax_rate
 
 
@@ -59,89 +76,37 @@ def historical_returns(df_returns, investment_choice, investment_amount, purchas
     annual_df_returns_var = "annual_returns_" + var_names[investment_choice]
     real_df_returns_var = "annual_real_returns_" + var_names[investment_choice]
     # calculate nominal sale price
-    nominal_price_df = df_returns.loc[
-        (df_returns['year'] >= purchase_year) & (df_returns['year'] <= sale_year), ["year", annual_df_returns_var]]
-    nominal_price_df.loc[nominal_price_df['year'] == purchase_year, 'value_before_year'] = investment_amount
-    nominal_price_df.reset_index(inplace=True)
-    for i in range(1, len(nominal_price_df)):
-        nominal_price_df.loc[i, 'value_before_year'] = nominal_price_df.loc[i - 1, 'value_before_year'] * (
-                    1 + nominal_price_df.loc[i - 1, annual_df_returns_var])
-    nominal_sale_price = nominal_price_df.loc[nominal_price_df['year'] == sale_year, 'value_before_year']
-    nominal_sale_price = float(nominal_sale_price.iloc[0])
+    price_df = df_returns.loc[
+        (df_returns['year'] >= purchase_year) & (df_returns['year'] <= sale_year), ["year", "inflation_rate",
+                                                                                    annual_df_returns_var,
+                                                                                    real_df_returns_var]]
+    price_df.loc[price_df['year'] == purchase_year, 'value_before_year'] = investment_amount
+    price_df.loc[price_df['year'] == purchase_year, 'real_value_before_year'] = investment_amount
+    price_df.loc[price_df['year'] == purchase_year, 'tax_adjusted_nominal_value'] = investment_amount
+    price_df.loc[price_df['year'] == purchase_year, 'tax_adjusted_real_value'] = investment_amount
+    price_df.loc[price_df['year'] == purchase_year, 'tax'] = 0
 
-    # calculate real sale price
-    real_price_df = df_returns.loc[
-        (df_returns['year'] >= purchase_year) & (df_returns['year'] <= sale_year), ["year", real_df_returns_var]]
-    real_price_df.loc[real_price_df['year'] == purchase_year, 'real_value_before_year'] = investment_amount
-    real_price_df.reset_index(inplace=True)
-    for i in range(1, len(real_price_df)):
-        real_price_df.loc[i, 'real_value_before_year'] = real_price_df.loc[i - 1, 'real_value_before_year'] * (
-                    1 + real_price_df.loc[i - 1, real_df_returns_var])
-    real_sale_price = real_price_df.loc[real_price_df['year'] == sale_year, 'real_value_before_year']
-    real_sale_price = float(real_sale_price.iloc[0])
+    price_df.reset_index(inplace=True)
+    for i in range(1, len(price_df)):
+        price_df.loc[i, 'value_before_year'] = price_df.loc[i - 1, 'value_before_year'] * (
+                1 + price_df.loc[i - 1, annual_df_returns_var])
+        price_df.loc[i, 'tax'] = max(price_df.loc[i, 'value_before_year'] - price_df.loc[0, 'value_before_year'],
+                                     0) * cap_tax_rate / 100
+        price_df.loc[i, 'real_value_before_year'] = price_df.loc[i - 1, 'real_value_before_year'] * (
+                1 + price_df.loc[i - 1, real_df_returns_var])
+        price_df.loc[i, 'tax_adjusted_nominal_value'] = price_df.loc[i, 'value_before_year'] - price_df.loc[
+            i, 'tax']
+        total_inflation = 1
+        for j in range(0, i):
+            total_inflation = (1 + price_df.loc[j, 'inflation_rate'])* total_inflation
+        price_df.loc[i, 'tax_adjusted_real_value'] = price_df.loc[i, 'tax_adjusted_nominal_value'] /total_inflation
+    price_df.reset_index(inplace=True)
 
-    # calculate total tax
-    tax = (nominal_sale_price - investment_amount) * cap_tax_rate / 100
-
-    # calculate nominal sale price less tax
-    nominal_sale_price_tax = float(nominal_sale_price - tax)
-
-    # calculate real value of investment at end of time period
-    # divide by (1+ inflation rate) for each year
-    inflation_df = df_returns.loc[
-        (df_returns['year'] >= purchase_year) & (df_returns['year'] <= sale_year), ["year", "inflation_rate"]]
-    inflation_df.loc[inflation_df['year'] == sale_year, 'tax_adjusted_real_value'] = nominal_sale_price_tax
-    inflation_df.reset_index(inplace=True)
-    for i in range(len(real_price_df) - 2, -1, -1):
-        inflation_df.loc[i, 'tax_adjusted_real_value'] = inflation_df.loc[i + 1, 'tax_adjusted_real_value'] / (
-                    1 + inflation_df.loc[i, "inflation_rate"])
-    real_end_value_tax = inflation_df.loc[real_price_df['year'] == purchase_year, 'tax_adjusted_real_value']
-    real_end_value_tax = float(real_end_value_tax.iloc[0])
-
-    # calculate real return
-    real_return_tax = real_end_value_tax - investment_amount
-
-    # create dataframe of different financial variables to return
-    d = {"Initial investment amount": investment_amount,
-         "Nominal sale price": nominal_sale_price,
-         "Real sale price": real_sale_price,
-         "Tax": tax,
-         "Nominal sale price minus tax": nominal_sale_price_tax,
-         "Real value of nominal sale price minus tax": real_end_value_tax,
-         "Real return including inflation and tax": real_return_tax}
-    df_final = pd.DataFrame(d, index=[1])
-
-
-    #Create dataframe of investment value over time
-    values_over_time = pd.DataFrame([nominal_price_df['value_before_year'],
-                                     real_price_df['real_value_before_year'],
-                                     inflation_df['tax_adjusted_real_value']],
-                                    columns=["Nominal value", "Real value", "Real value taxed"])
-
-
-
-    # print statement to debug
-    # =============================================================================
-    #     print("Initial investment:")
-    #     print(investment_amount)
-    #     print("Nominal sale price: ")
-    #     print(nominal_sale_price)
-    #     print("Real sale price: ")
-    #     print(real_sale_price)
-    #     print("Capital gains tax: ")
-    #     print(tax)
-    #     print("Nominal sale price less tax: ")
-    #     print(nominal_sale_price_tax)
-    #     print("Real value of nominal sale price less tax: ")
-    #     print(real_end_value_tax)
-    #     print("Real return including inflation and tax: ")
-    #     print(real_return_tax)
-    #     print("All return values:")
-    #     print(df_final)
-    # =============================================================================
-
-    # return list of variables
-    return [df_final, values_over_time]
+    # Return dataframe with value of investment over time
+    cols_to_keep = ["year", "value_before_year", "real_value_before_year", "tax", "tax_adjusted_nominal_value", "tax_adjusted_real_value", "inflation_rate",
+                           annual_df_returns_var, real_df_returns_var]
+    returns_df = price_df[cols_to_keep]
+    return returns_df
 
 
 df_returns = pd.read_excel(r'../data/Output/Returns dataset.xlsx', sheet_name="r.data")
@@ -151,9 +116,9 @@ purchase_year = 1998
 sale_year = 2022
 cap_tax_rate = 15
 # Test these functions a few times
-# df = historical_returns(df_returns, 'S&P 500', 1000, 1998, 2020, 15)
+df = historical_returns(df_returns, 'S&P 500', 1000, 1998, 2022, 15)
 # df = historical_returns(df_returns, '3 month treasury bill', 1000, 1998, 2020, 15)
-df = historical_returns(df_returns, 'US treasury bond', 1000, 1998, 2022, 15)
+# df = historical_returns(df_returns, 'US treasury bond', 1000, 1998, 2022, 15)
 # df = historical_returns(df_returns, 'BAA corporate bond', 1000, 1998, 2020, 15)
 # df = historical_returns(df_returns, 'Real estate', 1000, 1998, 2020, 15)
 
@@ -161,13 +126,19 @@ df = historical_returns(df_returns, 'US treasury bond', 1000, 1998, 2022, 15)
 # print(calculate_tax_rate(50000, "Single"))
 # print(calculate_tax_rate(10000000, "Single"))
 # print(calculate_tax_rate(200000, "Married, filing separately"))
-# print(calculate_return(100, 10, 10, 1, 1))
-# df = create_df(100, 10, 30, 1, 1)
+# df =calculate_return(principal = 100, interest = 10, years = 10, inflation =1, cap_tax_rate = 1)
+# print(calculate_return(principal = 100, interest = 10, years = 10, inflation =1, cap_tax_rate = 1))
+
+
+#df = create_df(principal=100, interest=10, years=30, inflation=1, cap_tax_rate=1)
+#df2 = calculate_return(principal = 100, interest = 10, years = 30, inflation = 1, cap_tax_rate = 1)
+
 # df2 = create_df(100, 10, 30, 1, 50)
 # print(calculate_return(100, 10, 1, 1, 1))
 # print(create_df(100, 10, 1, 1, 1))
 
-# print(calculate_return(100, 10.1, 1, 1, 1))
+# df_test = calculate_return(principal = 100, interest = 10.1, years = 1, inflation = 1, cap_tax_rate = 1)
+# print(df_test)
 # print(create_df(100, 10, 1, 1, 1))
 
 # print(calculate_return(100, 10, 1, 1, 1))

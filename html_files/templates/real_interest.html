@@ -8,34 +8,40 @@
     <link rel="stylesheet" type="text/css"
     href="{{ url_for('static', filename='style.css') }}"/>
 </head>
+<div class = "container">
+<div class = "sidebar">
+<a href="/"> Simple interest returns </a>
+<a href="/simple_interest_taxed/"> Taxed simple interest returns </a>
+<a href="/real_interest/"> Real  interest returns</a>
+<a href="/real_interest_taxed/"> Taxed real interest returns </a>
+<a href="/capital_gains/"> Capital gains calculator </a>
+<a href="/historical_returns/"> Historical returns calculator </a>
+<a href= "/about/" > About this website  </a>
+
+
+    </div>
+<div class = "content">
         <h1> Real investment returns calculator </h1>
-       <p> So far, we have been assuming no inflation. Inflation is the amount which goods become more expensive over time. 
-            The government typically uses a variation of CPI, or consumer price index, to track inflation. To calculate CPI,
-            the government takes a set basket of goods and monitors the change in historical pricing. Inflation detracts from 
-            the value stockholders gain from the accumulation in stock price. For example, if a stock increases in value 10%,
-            but inflation is 2%, the value of the stock increased by 8%. The real interest rate is the stock's true appreciation
-            in value over time, and is calculated here as the nominal interest rate minus inflation. The federal bank of
-            the US aims to keep inflation around 2% a year, though inflation has been much higher than 2% in recent times.</p> 
         <form method="post" action="{{ url_for('real_interest') }}" id="real_interest">
             <label for="Principal3">Investment:$</label>
-            <input type="number" name="Principal3" id="Principal3" min = "0" value = "100.00" step = "any">
+            <input type="number" name="Principal3" id="Principal3" min = "0" value = "{{ Principal3 }}" step = "any">
             <br/>
             <label for="Interest3">Interest rate:</label>
-            <input type="number" name="Interest3" id="Interest3" min = "0" value = "10.00" step = "any"> %
+            <input type="number" name="Interest3" id="Interest3" value = "{{ Interest3 }}" step = "any"> %
             <br/>
             <label for="Inflation3">Inflation:</label>
-            <input type = "number" name = "Inflation3" id = "Inflation3" min = "0" value = "2.00" step = "any"> %
+            <input type = "number" name = "Inflation3" id = "Inflation3" value ="{{ Inflation3 }}" step = "any"> %
             <br/>
             <label for="Years3">Years:</label>
-            <input type = "number" name = "Years3" id = "Years3" min = "0" value = "10.00" step = "any">
+            <input type = "number" name = "Years3" id = "Years3" min = "0" value = {{ Years3 }} step = "any">
             <br/>
             <input type="submit" value="Submit"/>
-            <input type="reset"  value="RESET" style="color: red;"/>
+            <input type="reset"  value="Reset" style="color: red;"/>
         </form>
         {% if calculation_success3 == True %}
             <br/>
-            <p> After {{Years3}} years, a {{Principal3|currencyformat}} investment gaining {{Interest3}}% a year will be worth
-            {{result3|currencyformat}}, accounting for {{Inflation3}}% inflation.</p>
+            <p> <b> After {{Years3}} years, a {{Principal3|currencyformat}} investment gaining {{Interest3}}% a year will be worth
+                {{result3|currencyformat}}, accounting for {{Inflation3}}% inflation.</b></p>
              <canvas id = "lineChart" width = "900" height = "400"></canvas>
              <script>
              var ctx  = document.getElementById("lineChart").getContext("2d");
@@ -45,58 +51,87 @@
                      data: {
                          labels: {{labels | safe}},
                          datasets: [
+                              {
+                                 label: "Simple value",
+                                 data: {{values_no_inflation| safe }},
+                                 fill: false,
+                                 borderColor: "rgb(75, 192, 192)",
+                                 lineTension: 0.1
+                             },
                              {
                                  label: "Real value",
                                  data: {{values| safe }},
                                  fill: false,
                                  borderColor: "rgb(75,81,192)",
                                  lineTension: 0.1
-                             },
-                               {
-                                 label: "Simple value",
-                                 data: {{values_no_inflation| safe }},
-                                 fill: false,
-                                 borderColor: "rgb(75, 192, 192)",
-                                 lineTension: 0.1
                              }
                          ]
                      },
-                     options: {
-                         responsive: false,
-                         scales: {
-                             yAxes: [{
-                                 ticks: {
-                                     callback: function (value) {
-                                          value = value.toString();
-                                          value = value.split(/(?=(?:...)*$)/);
-                                          value = value.join(',');
-                                          return '$' + value;
-
-                                     }
-                                 }
-                             }],
-                             xAxes: [{
-                                 scaleLabel: {
-                                     display: true,
-                                     labelString: 'Year'
-                                 }
-                             }]
-                         }
-                     }});
-             </script>
+                      options: {
+            responsive: false,
+            tooltips: {
+             callbacks: {
+                label: function(t, d) {
+                   var xLabel = d.datasets[t.datasetIndex].label;
+                   var yLabel = t.yLabel.toFixed(2) >= 1000 ? '$' + t.yLabel.toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") : '$' + t.yLabel.toFixed(2);
+                   return xLabel + ': ' + yLabel;
+                }
+             }
+             },
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        callback: function (value) {
+                            value = value.toString();
+                            value = value.split(/(?=(?:...)*$)/);
+                            value = value.join(',');
+                            return '$' + value;
+                        },
+                        fontColor: 'black',
+                        fontSize: 24,
+                    },
+                    gridLines: {
+                        color: 'black'
+                    }
+                }],
+                xAxes: [{
+                    ticks: {
+                        fontColor: 'black',
+                        fontSize: 24,
+                    },
+                    scaleLabel: {
+                        display: true,
+                        labelString: 'Year',
+                        fontColor: 'black',
+                        fontweight: 'bold',
+                        fontSize: 32
+                    },
+                    gridLines: {
+                        color: 'black'
+                    }
+                }]
+            },
+            legend: {
+                labels: {
+                  fontColor: 'black',
+                  fontSize: 32,
+                }
+  }
+        }
+    });
+</script>
         {% endif %}
         {% if calculation_success3 == False %}
             <br/>
             <p>{{error}}</p>
             <p>{{Principal3}} {{Interest3}} {{Years3}} = "{{result}}"</p>
         {% endif %}
-         <p> </p>
-         <a href= "../" > Home </a> <br>
-         <a href="/simple_interest/"> Simple interest returns </a> <br>
-         <a href="/simple_interest_taxed/"> Taxed simple interest returns</a> <br>
-         <a href="/real_interest/"> Real  interest returns</a> <br>
-         <a href="/real_interest_taxed/"> Taxed real interest returns </a> <br>
-         <a href="/capital_gains/"> Capital gains calculator </a> <br>
-         <a href="/historical_returns/"> Historical returns calculator </a> <br>
-
+       <p>  For the first two calculations, we assumed no inflation. Inflation is the rate at which goods become more expensive over time.
+            The government typically uses a consumer price index (CPI) to track inflation. To calculate CPI,
+           the government takes a set basket of goods and monitors the change in historical pricing.  </p>
+          <p>
+           Inflation detracts from returns. For example, if a stock increases in value 10%,
+            but inflation is 2%, the real value of the stock increases by roughly 8%. The real return is the stock's increase
+            in value, which is different than its increase in price. The US Federal Reserve aims to keep inflation around 2% a year, though inflation has been much higher than 2% in recent times.</p>
+</div> </div>
 </html>
