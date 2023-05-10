@@ -46,13 +46,13 @@
                     <input type="submit" value="Submit"/>
                     <input type="reset"  value="Reset" style="color: red;"/>
                 </form>
-                
+</<p> </p>
                 {% if calculation_success6 == True %} 
                        {% for table in tables %}
                         {{ table|safe }}
                     {% endfor %}
                                   <p> <b> If you purchased {{investment_amount | currencyformat}} of {{investment_choice}} at the start of {{purchase_year}} and sold it at the start of {{sale_year}},
-                    the real taxed value of your sale price would be {{real_end_value_tax| currencyformat}}. </b> </p>
+                                      the real taxed value of your sale price would be {{real_end_value_tax| currencyformat}}. </b> </p>
                      <canvas id = "lineChart" width = "900" height = "400"></canvas>
              <script>
             Chart.Legend.prototype.afterFit = function() {

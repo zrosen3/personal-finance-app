@@ -40,7 +40,7 @@ Step 2: Improve app
 14. Format graph points as currencies ✅ 
 15. Figure out debug mode ✅ 
 16. Edit text on each page ✅ 
-17. Push changes to Github
+17. Push changes to Github  ✅ 
 
 
 
