@@ -477,12 +477,5 @@ def historical_returns_calculator():
                                 calculation_success6=False))
 
 
-# Real interest calculation, including tax
 if __name__ == '__main__':
-    app.debug = True
-    app.run()
-
-# Real interest calculation, including tax
-if __name__ == '__main__':
-    app.debug = True
-    app.run()
+    app.run(host='0.0.0.0', port=5000, debug=True)
